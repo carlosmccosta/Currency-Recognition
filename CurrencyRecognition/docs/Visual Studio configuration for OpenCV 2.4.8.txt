@@ -1,0 +1,69 @@
+#######################################################################
+############################  OpenCV setup  ###########################
+#######################################################################
+
+http://opencv.org/downloads.html
+Extract opencv to c:\
+
++ Add system environment variable
+OPENCV_DIR
+C:\opencv\build\
+
++ Add to path
+C:\opencv\build\x86\vc12\bin;
+
+
+
+#######################################################################
+########################  OpenCV in Visual Studio  ####################
+#######################################################################
+
++ Project properties -> C/C++ -> General -> Aditional Include Directories
+$(OPENCV_DIR)\include
+
++ Project properties -> Linker -> General -> Aditional Library Directories
+$(OPENCV_DIR)\x86\vc12\lib
+
+
+Project properties -> Linker -> Input -> Aditional Dependencies
+Debug:
+opencv_calib3d248d.lib
+opencv_contrib248d.lib
+opencv_core248d.lib
+opencv_features2d248d.lib
+opencv_flann248d.lib
+opencv_gpu248d.lib
+opencv_highgui248d.lib
+opencv_imgproc248d.lib
+opencv_legacy248d.lib
+opencv_ml248d.lib
+opencv_nonfree248d.lib
+opencv_objdetect248d.lib
+opencv_ocl248d.lib
+opencv_photo248d.lib
+opencv_stitching248d.lib
+opencv_superres248d.lib
+opencv_ts248d.lib
+opencv_video248d.lib
+opencv_videostab248d.lib
+
+Release:
+opencv_calib3d248.lib
+opencv_contrib248.lib
+opencv_core248.lib
+opencv_features2d248.lib
+opencv_flann248.lib
+opencv_gpu248.lib
+opencv_highgui248.lib
+opencv_imgproc248.lib
+opencv_legacy248.lib
+opencv_ml248.lib
+opencv_nonfree248.lib
+opencv_objdetect248.lib
+opencv_ocl248.lib
+opencv_photo248.lib
+opencv_stitching248.lib
+opencv_superres248.lib
+opencv_ts248.lib
+opencv_video248.lib
+opencv_videostab248.lib

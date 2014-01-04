@@ -1,0 +1,47 @@
+Obtain data
+	+ From image
+	+ From video (VideoCapture - http://docs.opencv.org/doc/tutorials/highgui/video-input-psnr-ssim/video-input-psnr-ssim.html#videoinputpsnrmssim)
+		+ File 
+		+ Webcam
+
+
+Pre-processing
+	- Correct lens distortions
+		- Geometric distortion
+		- Cromatic distortion
+	+ Histogram equalization
+		+ equalizeHist - http://docs.opencv.org/doc/tutorials/imgproc/histograms/histogram_equalization/histogram_equalization.html#histogram-equalization
+		+ Contrast Limited Adaptive Histogram Equalization  - CLAHE
+	+ Reduce noise (fastNlMeansDenoisingColored - http://docs.opencv.org/modules/photo/doc/denoising.html)
+		+ Bilateral filtering (bilateralFilter - http://docs.opencv.org/doc/tutorials/imgproc/gausian_median_blur_bilateral_filter/gausian_median_blur_bilateral_filter.html#smoothing)
+		- Gaussian smothing
+		- Median filter
+		- Nagao-Matsuyama filter
+		- Kuwahara filter
+		- Anisotropic Diffusion Filtering		
+		- Frequency domain filtering
+	+ Increase contrast (http://docs.opencv.org/doc/tutorials/core/basic_linear_transform/basic_linear_transform.html)
+	+ Correct brightness		
+
+
+Recognition
+	+ Feature detection
+		+ SIFT
+		+ SURF
+		+ GFTT
+		+ FAST		
+		+ ORB
+		+ BRISK
+		+ STAR
+		+ MSER		
+	+ Feature description
+		+ SIFT
+		+ SURF		
+		+ FREAK
+		+ BRIEF
+		+ ORB
+		+ BRISK
+	+ Descriptor matcher
+		+ FlannBasedMatcher
+		+ BFMatcher
+	
