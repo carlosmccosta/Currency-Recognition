@@ -40,14 +40,15 @@ class PerformanceTimer {
 	private:
 		double elapsedTimeMicroSec;               // starting time in micro-second
 		bool stopped;                             // stop flag
-#ifdef _WIN32
-		LARGE_INTEGER frequencyWin;               // ticks per second
-		LARGE_INTEGER startCountWin;
-		LARGE_INTEGER endCountWin;
-#else
-		timeval startCount;
-		timeval endCount;
-#endif
+
+		#ifdef _WIN32
+			LARGE_INTEGER frequencyWin;           // ticks per second
+			LARGE_INTEGER startCountWin;
+			LARGE_INTEGER endCountWin;
+		#else
+			timeval startCount;
+			timeval endCount;
+		#endif
 		
 		void calculateElapsedTimeMicroSec();
 };

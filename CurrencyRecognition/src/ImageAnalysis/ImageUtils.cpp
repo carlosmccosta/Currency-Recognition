@@ -22,9 +22,9 @@ void ImageUtils::loadImageMasks(string imagePath, vector<Mat>& masks) {
 }
 
 
-void ImageUtils::retriveTargetsMasks(string imagePath, vector<Mat>& masks, Scalar lowerRange, Scalar higherRange) {
-	loadImageMasks(imagePath, masks);
-	int masksSize = masks.size();
+void ImageUtils::retriveTargetsMasks(string imagePath, vector<Mat>& masksOut, Scalar lowerRange, Scalar higherRange) {
+	loadImageMasks(imagePath, masksOut);
+	int masksSize = masksOut.size();
 
 	#pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < masksSize; ++i) {
@@ -33,12 +33,12 @@ void ImageUtils::retriveTargetsMasks(string imagePath, vector<Mat>& masks, Scala
 		cv::inRange(before, lowerRange, higherRange, after);
 		masks[i] = after;*/
 
-		cv::inRange(masks[i], lowerRange, higherRange, masks[i]);
+		cv::inRange(masksOut[i], lowerRange, higherRange, masksOut[i]);
 	}
 }
 
 
-bool ImageUtils::mergeTargetMasks(vector<Mat>& masks, Mat& mergedMask) {
+bool ImageUtils::mergeTargetMasks(vector<Mat>& masks, Mat& mergedMaskOut) {
 	int masksSize = masks.size();
 	if (masksSize == 0){
 		return false;
@@ -62,10 +62,10 @@ bool ImageUtils::mergeTargetMasks(vector<Mat>& masks, Mat& mergedMask) {
 		return false;
 	}
 
-	mergedMask = Mat::zeros(maxRows, maxCols, CV_8UC1);
+	mergedMaskOut = Mat::zeros(maxRows, maxCols, CV_8UC1);
 	for (int i = 0; i < masksSize; ++i) {
 		if (masks[i].rows == maxRows && masks[i].cols == maxCols) {
-			cv::bitwise_or(mergedMask, masks[i], mergedMask);
+			cv::bitwise_or(mergedMaskOut, masks[i], mergedMaskOut);
 		}
 	}	
 
@@ -150,5 +150,34 @@ bool ImageUtils::saveMatrix(string filename, string tag, const Mat& matrix) {
 	}
 
 	return false;
+}
+
+
+
+bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
+	Mat& homographyOut, vector<DMatch> inliersOut, vector<unsigned char> inliersMaskOut,
+	float reprojectionThreshold, size_t minNumberMatchesAllowed) {
+	
+	if (matches.size() < minNumberMatchesAllowed) { return false; }
+	
+	// Prepare data for cv::findHomography
+	vector<Point2f> srcPoints(matches.size());
+	vector<Point2f> dstPoints(matches.size());
+	for (size_t i = 0; i < matches.size(); i++) {
+		srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
+		dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
+	}
+
+	// Find homography matrix and get inliers mask
+	inliersMaskOut.clear();
+	inliersMaskOut.resize(srcPoints.size(), 0);	
+	homographyOut = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, reprojectionThreshold, inliersMaskOut);
+		
+	for (size_t i = 0; i < inliersMaskOut.size(); ++i) {
+		if (inliersMaskOut[i] > 0)
+			inliersOut.push_back(matches[i]);
+	}
+
+	return inliersOut.size() >= minNumberMatchesAllowed;
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

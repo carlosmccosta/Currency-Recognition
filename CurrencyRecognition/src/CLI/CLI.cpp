@@ -20,14 +20,14 @@ void CLI::startInteractiveCLI() {
 	int screenWidth = 1920; // ConsoleInput::getInstance()->getIntCin("  >> Screen width (used to arrange windows): ", "  => Width >= 100 !!!\n", 100);
 	int screenHeight = 1080; // ConsoleInput::getInstance()->getIntCin("  >> Screen height (used to arrange windows): ", "  => Width >= 100 !!!\n", 100);
 	bool optionsOneWindow = false; // ConsoleInput::getInstance()->getYesNoCin("  >> Use only one window for options trackbars? (Y/N): ");
-	bool classifierTrained = false;
+	bool setupOfImageRecognitionDone = false;
 
 	do {
 		try {
 			ConsoleInput::getInstance()->clearConsoleScreen();
 			showConsoleHeader();
 		
-			if (classifierTrained) {
+			if (setupOfImageRecognitionDone) {
 				userOption = getUserOption();
 				if (userOption == 1) {
 					setupImageRecognition();
@@ -61,7 +61,7 @@ void CLI::startInteractiveCLI() {
 				}
 			} else {
 				setupImageRecognition();
-				classifierTrained = true;
+				setupOfImageRecognitionDone = true;
 			}
 
 			if (userOption != 0) {
@@ -105,57 +105,53 @@ void CLI::setupImageRecognition() {
 
 	Ptr<FeatureDetector> featureDetector;
 	Ptr<DescriptorExtractor> descriptorExtractor;
-	Ptr<DescriptorMatcher> descriptorMatcher;	
+	Ptr<DescriptorMatcher> descriptorMatcher;
 
-	stringstream trainingConfigsTag;
+	stringstream configurationTags;
 
 	switch (featureDetectorSelection) {
-		case 1: { featureDetector = new cv::SiftFeatureDetector();			trainingConfigsTag << "_SIFT-Detector"; break; }
-		case 2: { featureDetector = new cv::SurfFeatureDetector(400);		trainingConfigsTag << "_SURF-Detector"; break; }
-		case 3: { featureDetector = new cv::GoodFeaturesToTrackDetector();	trainingConfigsTag << "_GFTT-Detector"; break; }
-		case 4: { featureDetector = new cv::FastFeatureDetector();			trainingConfigsTag << "_FAST-Detector"; break; }		
-		case 5: { featureDetector = new cv::OrbFeatureDetector();			trainingConfigsTag << "_ORB-Detector";  break; }
-		case 6: { featureDetector = new cv::BRISK();						trainingConfigsTag << "_BRISK-Detector"; break; }
-		case 7: { featureDetector = new cv::StarFeatureDetector();			trainingConfigsTag << "_STAR-Detector"; break; }
-		case 8: { featureDetector = new cv::MserFeatureDetector();			trainingConfigsTag << "_MSER-Detector"; break; }	
+		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; break; }
+		case 2: { featureDetector = new cv::SurfFeatureDetector(400);		configurationTags << "_SURF-Detector"; break; }
+		case 3: { featureDetector = new cv::GoodFeaturesToTrackDetector();	configurationTags << "_GFTT-Detector"; break; }
+		case 4: { featureDetector = new cv::FastFeatureDetector();			configurationTags << "_FAST-Detector"; break; }		
+		case 5: { featureDetector = new cv::OrbFeatureDetector();			configurationTags << "_ORB-Detector";  break; }
+		case 6: { featureDetector = new cv::BRISK();						configurationTags << "_BRISK-Detector"; break; }
+		case 7: { featureDetector = new cv::StarFeatureDetector();			configurationTags << "_STAR-Detector"; break; }
+		case 8: { featureDetector = new cv::MserFeatureDetector();			configurationTags << "_MSER-Detector"; break; }	
 		default: break;
 	}
 
 	switch (descriptorExtractorSelection) {
-		case 1: { descriptorExtractor = new cv::SiftDescriptorExtractor();	trainingConfigsTag << "_SIFT-Extractor"; break; }
-		case 2: { descriptorExtractor = new cv::SurfDescriptorExtractor();	trainingConfigsTag << "_SURF-Extractor"; break; }
-		case 3: { descriptorExtractor = new cv::FREAK();					trainingConfigsTag << "_FREAK-Extractor"; break; }
-		case 4: { descriptorExtractor = new cv::BriefDescriptorExtractor();	trainingConfigsTag << "_BRIEF-Extractor"; break; }		
-		case 5: { descriptorExtractor = new cv::OrbDescriptorExtractor();	trainingConfigsTag << "_ORB-Extractor";  break; }
-		case 6: { descriptorExtractor = new cv::BRISK();					trainingConfigsTag << "_BRISK-Extractor";  break; }
+		case 1: { descriptorExtractor = new cv::SiftDescriptorExtractor();	configurationTags << "_SIFT-Extractor"; break; }
+		case 2: { descriptorExtractor = new cv::SurfDescriptorExtractor();	configurationTags << "_SURF-Extractor"; break; }
+		case 3: { descriptorExtractor = new cv::FREAK();					configurationTags << "_FREAK-Extractor"; break; }
+		case 4: { descriptorExtractor = new cv::BriefDescriptorExtractor();	configurationTags << "_BRIEF-Extractor"; break; }		
+		case 5: { descriptorExtractor = new cv::OrbDescriptorExtractor();	configurationTags << "_ORB-Extractor";  break; }
+		case 6: { descriptorExtractor = new cv::BRISK();					configurationTags << "_BRISK-Extractor";  break; }
 		
 		default: break;
 	}
 
-	bool binaryDescriptor;
+
 	int bfNormType;
 	Ptr<cv::flann::IndexParams> flannIndexParams/* = new cv::flann::AutotunedIndexParams()*/;
-	if (descriptorExtractorSelection > 2) { // binary descriptors
-		binaryDescriptor = true;
+	if (descriptorExtractorSelection > 2) { // binary descriptors		
 		bfNormType = cv::NORM_HAMMING;
 		//flannIndexParams = new cv::flann::HierarchicalClusteringIndexParams();
 		flannIndexParams = new cv::flann::LshIndexParams(20, 10, 2);
-	} else { // float descriptors
-		binaryDescriptor = false;
+	} else { // float descriptors		
 		bfNormType = cv::NORM_L2;
 		flannIndexParams = new cv::flann::KDTreeIndexParams();
 	}
 
 	switch (descriptorMatcherSelection) {
-		case 1: { descriptorMatcher = new cv::FlannBasedMatcher(flannIndexParams);	trainingConfigsTag << "_Flann-Matcher"; break; }
-		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, false);			trainingConfigsTag << "_BF-Matcher"; break; }
+		case 1: { descriptorMatcher = new cv::FlannBasedMatcher(flannIndexParams);	configurationTags << "_Flann-Matcher"; break; }
+		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, false);			configurationTags << "_BF-Matcher"; break; }
 		default: break;
 	}
 	
-
-	string trainingDataFilename = trainingConfigsTag.str();	
 	
-	// TODO : recognition setup
+	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str());
 }
 
 

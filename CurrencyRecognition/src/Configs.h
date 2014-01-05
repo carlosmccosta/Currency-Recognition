@@ -29,6 +29,8 @@
 #define MASK_EXTENSION ".png"
 
 #define IMGS_DIRECTORY "imgs/currencyDB_mediumResolution/"
+#define REFERENCE_IMGAGES_LIST "imgs/listCurrencyDB.txt"
+#define REFERENCE_IMGAGES_ANALYSIS_DIRECTORY "testResults/currencyDBAnalysis/"
 #define TEST_IMGAGES_LIST "imgs/listTestDB.txt"
 
 #define TEST_OUTPUT_DIRECTORY "testResults/"

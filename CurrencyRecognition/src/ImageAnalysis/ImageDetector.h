@@ -19,16 +19,20 @@
 // std includes
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <fstream>
 
 // OpenCV includes
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 // project includes
 #include "ImagePreprocessor.h"
 #include "DetectorEvaluationResult.h"
+#include "TargetDetector.h"
 #include "../Configs.h"
 #include "../libs/PerformanceTimer.h"
 
@@ -36,6 +40,7 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::stringstream;
 using std::vector;
 using std::ifstream;
 using std::ofstream;
@@ -43,6 +48,9 @@ using std::ofstream;
 using cv::Mat;
 using cv::Ptr;
 using cv::Rect;
+using cv::FeatureDetector;
+using cv::DescriptorExtractor;
+using cv::DescriptorMatcher;
 using cv::imwrite;
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </includes> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -51,14 +59,25 @@ using cv::imwrite;
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 class ImageDetector {
 	public:
-		ImageDetector();
+		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
+			Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesListPath = REFERENCE_IMGAGES_LIST, string testImagesListPath = TEST_IMGAGES_LIST);
 		virtual ~ImageDetector();
 
-		virtual void detectTargets(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& imageDetectionMasksOut, bool showTargetBoundingRectangles = true, bool showImageKeyPoints = true);
-		DetectorEvaluationResult evaluateDetector(string testImgsList, bool saveResults = true);
+		bool setupTargetDB(const string& referenceImagesListPath);
 
-	protected:
-		string _configuration;
-		ImagePreprocessor _imagePreprocessor;
+		virtual void detectTargets(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& imageDetectionMasksOut, bool showTargetBoundingRectangles = true, bool showImageKeyPoints = true);
+		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
+
+	protected:						
+		Ptr<FeatureDetector> _featureDetector;
+		Ptr<DescriptorExtractor> _descriptorExtractor;
+		Ptr<DescriptorMatcher> _descriptorMatcher;
+
+		Ptr<ImagePreprocessor> _imagePreprocessor;
+		string _configurationTags;
+		string _referenceImagesListPath;
+		string _testImagesListPath;
+
+		vector<TargetDetector> _targetDetectors;
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

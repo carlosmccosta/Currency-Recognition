@@ -1,0 +1,14 @@
+5eu_back.jpg	| 5 | 0 255 0
+5eu_front.jpg	| 5 | 0 255 0
+10eu_back.jpg	| 5 | 0 255 0
+10eu_front.jpg	| 5 | 0 255 0
+20eu_back.jpg	| 5 | 0 255 0
+20eu_front.jpg	| 5 | 0 255 0
+50eu_back.jpg	| 5 | 0 255 0
+50eu_front.jpg	| 5 | 0 255 0
+100eu_back.jpg	| 5 | 0 255 0
+100eu_front.jpg	| 5 | 0 255 0
+200eu_back.jpg	| 5 | 0 255 0
+200eu_front.jpg	| 5 | 0 255 0
+500eu_back.jpg	| 5 | 0 255 0
+500eu_front.jpg	| 5 | 0 255 0

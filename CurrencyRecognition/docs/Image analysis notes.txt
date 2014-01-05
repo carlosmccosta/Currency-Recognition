@@ -25,23 +25,31 @@ Pre-processing
 
 
 Recognition
-	+ Feature detection
-		+ SIFT
-		+ SURF
-		+ GFTT
-		+ FAST		
-		+ ORB
-		+ BRISK
-		+ STAR
-		+ MSER		
-	+ Feature description
-		+ SIFT
-		+ SURF		
-		+ FREAK
-		+ BRIEF
-		+ ORB
-		+ BRISK
-	+ Descriptor matcher
-		+ FlannBasedMatcher
-		+ BFMatcher
-	
+	+ Setup image DB with each target and its ROIs
+		+ For each image
+			+ Feature detection
+				+ SIFT
+				+ SURF
+				+ GFTT
+				+ FAST		
+				+ ORB
+				+ BRISK
+				+ STAR
+				+ MSER		
+			+ Feature description
+				+ SIFT
+				+ SURF		
+				+ FREAK
+				+ BRIEF
+				+ ORB
+				+ BRISK
+			+ Descriptors matching
+				+ FlannBasedMatcher
+				+ BFMatcher
+	+ For each test image
+		+ Feature detection
+		+ Feature description
+		+ Descriptors matching
+		+ Inliers refinement with homography computed using RANSAC
+		+ Filter recognition results
+			+ Use rate of inliers in ROIs => (number inliers in ROI) / (number feature points in ROI)

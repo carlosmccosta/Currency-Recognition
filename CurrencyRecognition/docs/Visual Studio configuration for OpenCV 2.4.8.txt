@@ -10,7 +10,7 @@ OPENCV_DIR
 C:\opencv\build\
 
 + Add to path
-C:\opencv\build\x86\vc12\bin;
+C:\opencv\build\x86\vc11\bin;
 
 
 
@@ -22,7 +22,7 @@ C:\opencv\build\x86\vc12\bin;
 $(OPENCV_DIR)\include
 
 + Project properties -> Linker -> General -> Aditional Library Directories
-$(OPENCV_DIR)\x86\vc12\lib
+$(OPENCV_DIR)\x86\vc11\lib
 
 
 Project properties -> Linker -> Input -> Aditional Dependencies
