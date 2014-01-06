@@ -2,7 +2,7 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <constants definitions> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#define DETECTION_MASK "detectionMask"
+#define INLIERS_MATCHES "inliersMatches"
 #define RESULTS_FILE "resultsAnalysis.txt"
 #define RESULTS_FILE_HEADER ">>>>> Detector image results analysis <<<<<"
 #define RESULTS_FILE_FOOTER ">>>>> Detector global results analysis <<<<<"
@@ -33,8 +33,10 @@
 #include "ImagePreprocessor.h"
 #include "DetectorEvaluationResult.h"
 #include "TargetDetector.h"
+#include "DetectorResult.h"
 #include "../Configs.h"
 #include "../libs/PerformanceTimer.h"
+#include "../GUI/GUIUtils.h"
 
 // namespace specific imports to avoid namespace pollution
 using std::cout;
@@ -65,7 +67,8 @@ class ImageDetector {
 
 		bool setupTargetDB(const string& referenceImagesListPath);
 
-		virtual void detectTargets(Mat& image, vector<Rect>& targetsBoundingRectanglesOut, Mat& imageDetectionMasksOut, bool showTargetBoundingRectangles = true, bool showImageKeyPoints = true);
+		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image);
+		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilename = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 
 	protected:						

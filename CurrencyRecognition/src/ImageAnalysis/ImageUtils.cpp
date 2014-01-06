@@ -107,6 +107,39 @@ void ImageUtils::splitKeyPoints(string imagePath, const vector<KeyPoint>& keypoi
 }
 
 
+void ImageUtils::correctBoundingBox(Rect& boundingBox, int imageWidth, int imageHeight) {
+	if (boundingBox.x < 0) {
+		boundingBox.width += boundingBox.x;
+		boundingBox.x = 0;
+	}
+
+	if (boundingBox.x > imageWidth) {
+		boundingBox.width = 0;
+		boundingBox.x = imageWidth;
+	}
+
+	if (boundingBox.y < 0) {
+		boundingBox.height += boundingBox.y;
+		boundingBox.y = 0;
+	}
+
+	if (boundingBox.y > imageHeight) {
+		boundingBox.height = 0;
+		boundingBox.y = imageWidth;
+	}
+
+	int maxWidth = imageWidth - boundingBox.x;
+	if (boundingBox.width > maxWidth) {
+		boundingBox.width = maxWidth;
+	}
+
+	int maxHeight = imageHeight - boundingBox.y;
+	if (boundingBox.height > maxHeight) {
+		boundingBox.height = maxHeight;
+	}
+}
+
+
 void ImageUtils::findMaskBoundingRectangles(Mat& mask, vector<Rect>& targetsBoundingRectanglesOut) {
 	targetsBoundingRectanglesOut.clear();
 	
@@ -155,7 +188,7 @@ bool ImageUtils::saveMatrix(string filename, string tag, const Mat& matrix) {
 
 
 bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
-	Mat& homographyOut, vector<DMatch> inliersOut, vector<unsigned char> inliersMaskOut,
+	Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
 	float reprojectionThreshold, size_t minNumberMatchesAllowed) {
 	
 	if (matches.size() < minNumberMatchesAllowed) { return false; }
@@ -178,6 +211,34 @@ bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoi
 			inliersOut.push_back(matches[i]);
 	}
 
-	return inliersOut.size() >= minNumberMatchesAllowed;
+	return !inliersOut.empty();
+}
+
+
+void ImageUtils::drawContour(Mat& image, vector<Point2f> contour, Scalar color, int thickness) {
+	for (size_t i = 0; i < contour.size(); ++i) {
+		Point p1 = contour[i];
+		Point p2;
+
+		if (i == contour.size() - 1) {
+			p2 = contour[0];
+		} else {
+			p2 = contour[i + 1];
+		}
+
+		try {
+			cv::line(image, p1, p2, color, thickness);
+		} catch (...) {}
+	}
+}
+
+
+string ImageUtils::getFilenameWithoutExtension(string filepath) {
+	size_t dotPosition = filepath.rfind(".");
+	if (dotPosition != string::npos) {
+		return filepath.substr(0, dotPosition);
+	} else {
+		return "";
+	}
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

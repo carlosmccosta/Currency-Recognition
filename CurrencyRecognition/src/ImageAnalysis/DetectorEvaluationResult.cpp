@@ -9,20 +9,37 @@ _precision(precision), _recall(recall), _accuracy(accuracy) {}
 DetectorEvaluationResult::DetectorEvaluationResult(size_t truePositives, size_t trueNegatives, size_t falsePositives, size_t falseNegatives) :
 	_truePositives(truePositives), _trueNegatives(trueNegatives), _falsePositives(falsePositives), _falseNegatives(falseNegatives) {	
 
-	_precision = computePrecision(truePositives, falsePositives);
-	_recall = computeRecall(truePositives, falseNegatives);
-	_accuracy = computeAccuracy(truePositives, trueNegatives, falsePositives, falseNegatives);
+	updateMeasures();
+}
+
+DetectorEvaluationResult::DetectorEvaluationResult(vector<size_t> results, vector<size_t> expectedResults) :
+	_truePositives(0), _trueNegatives(0), _falsePositives(0), _falseNegatives(0) {
+	std::sort(results.begin(), results.end());
+	std::sort(expectedResults.begin(), expectedResults.end());
+
+	for (size_t resultsIndex = 0; resultsIndex < results.size(); ++resultsIndex) {
+		vector<size_t>::iterator it = std::find(expectedResults.begin(), expectedResults.end(), results[resultsIndex]);
+
+		if (it != expectedResults.end()) {
+			++_truePositives;
+			expectedResults.erase(it);
+		} else {
+			++_falsePositives;
+		}
+	}
+	
+	_falseNegatives = expectedResults.size();
+
+	updateMeasures();	
 }
 
 DetectorEvaluationResult::DetectorEvaluationResult(Mat& votingMask, vector<Mat>& targetMasks, unsigned short votingMaskThreshold) :
-_truePositives(0), _trueNegatives(0), _falsePositives(0), _falseNegatives(0){
+	_truePositives(0), _trueNegatives(0), _falsePositives(0), _falseNegatives(0) {
 	Mat mergedTargetsMask;
 	if (ImageUtils::mergeTargetMasks(targetMasks, mergedTargetsMask)) {
 		computeMasksSimilarity(votingMask, mergedTargetsMask, votingMaskThreshold, &_truePositives, &_trueNegatives, &_falsePositives, &_falseNegatives);
 
-		_precision = computePrecision(_truePositives, _falsePositives);
-		_recall = computeRecall(_truePositives, _falseNegatives);
-		_accuracy = computeAccuracy(_truePositives, _trueNegatives, _falsePositives, _falseNegatives);
+		updateMeasures();
 	}
 }
 
@@ -96,5 +113,12 @@ double DetectorEvaluationResult::computeAccuracy(size_t truePositives, size_t tr
 	}
 
 	return (double)(truePositives + trueNegatives) / divisor;
+}
+
+
+void DetectorEvaluationResult::updateMeasures() {
+	_precision = computePrecision(_truePositives, _falsePositives);
+	_recall = computeRecall(_truePositives, _falseNegatives);
+	_accuracy = computeAccuracy(_truePositives, _trueNegatives, _falsePositives, _falseNegatives);
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ClassifierEvaluationResult>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

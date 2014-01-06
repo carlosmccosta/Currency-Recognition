@@ -24,8 +24,9 @@ using cv::Vec3b;
 class DetectorEvaluationResult {
 public:
 	DetectorEvaluationResult();
-	DetectorEvaluationResult(size_t truePositives, size_t trueNegatives, size_t falsePositives, size_t falseNegatives);
 	DetectorEvaluationResult(double precision, double recall, double accuracy);
+	DetectorEvaluationResult(size_t truePositives, size_t trueNegatives, size_t falsePositives, size_t falseNegatives);	
+	DetectorEvaluationResult(vector<size_t> results, vector<size_t> expectedResults);
 	DetectorEvaluationResult(Mat& votingMask, vector<Mat>& targetMasks, unsigned short votingMaskThreshold = 1);
 	virtual ~DetectorEvaluationResult() {}
 
@@ -35,6 +36,8 @@ public:
 	static double computePrecision(size_t truePositives, size_t falsePositives);
 	static double computeRecall(size_t truePositives, size_t falseNegatives);
 	static double computeAccuracy(size_t truePositives, size_t trueNegatives, size_t falsePositives, size_t falseNegatives);
+
+	void updateMeasures();
 
 	// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------
 	double getPrecision() const { return _precision; }

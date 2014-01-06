@@ -48,9 +48,9 @@ namespace GUIUtils {
 	* \brief Draws a label in image in the top part of the signBoundingRect
 	* \param text Text to draw
 	* \param image Image where the text is going to be drawn
-	* \param signBoundingRect Rectangle with the region of interest were the text is going to be positioned inside the image
+	* \param imageBoundingRect Rectangle with the region of interest were the text is going to be positioned inside the image
 	*/
-	void drawImageLabel(string text, Mat& image, const Rect& signBoundingRect);
+	void drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect);
 
 
 	/*!

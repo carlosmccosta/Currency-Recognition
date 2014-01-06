@@ -19,6 +19,7 @@
 
 // project includes
 #include "ImageUtils.h"
+#include "DetectorResult.h"
 
 // namespace specific imports to avoid namespace pollution
 using std::string;
@@ -48,14 +49,14 @@ class TargetDetector {
 		TargetDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Scalar contourColor = Scalar(1,1,1));
 		virtual ~TargetDetector();		
 
-		bool setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs, const string& targetTag);
+		bool setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs, size_t targetTag);
 		bool setupTargetROIs(const vector<KeyPoint>& targetKeypoints, const Mat& targetROIs);
 
-		float analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, float reprojectionThreshold = 3.0f);
+		Ptr<DetectorResult> analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, float reprojectionThreshold = 3.0f);
 
 		// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------
-		string getTargetTag() const { return _targetTag; }
-		void setTargetTag(string val) { _targetTag = val; }
+		size_t getTargetTag() const { return _targetTag; }
+		void setTargetTag(size_t val) { _targetTag = val; }
 		Mat getTargetImage() const { return _targetImage; }
 		void setTargetImage(Mat val) { _targetImage = val; }		
 		vector<KeyPoint>& getTargetKeypoints() { return _targetKeypoints; }
@@ -67,11 +68,11 @@ class TargetDetector {
 		Ptr<DescriptorExtractor> _descriptorExtractor;
 		Ptr<DescriptorMatcher> _descriptorMatcher;
 	
-		string _targetTag;				
+		size_t _targetTag;				
 		Mat _targetImage;
 		Scalar _contourColor;
 				
-		vector<KeyPoint> _targetKeypoints;				
+		vector<KeyPoint> _targetKeypoints;		
 		vector<size_t> _targetKeypointsAssociatedROIsIndexes;
 		vector<size_t> _numberOfKeypointInsideContours;
 

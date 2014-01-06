@@ -2,21 +2,21 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <GUIUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& signBoundingRect) {
-	int textBoxHeight = (int)(signBoundingRect.height * 0.15);
+void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect) {
+	int textBoxHeight = (int)(imageBoundingRect.height * 0.15);
 	int fontface = cv::FONT_HERSHEY_SIMPLEX;
 	double scale = (double)textBoxHeight / 46.0;
 	int thickness = (std::max)(1, (int)(textBoxHeight * 0.05));
 	int baseline = 0;
 
-	Rect textBoundingRect = signBoundingRect;
+	Rect textBoundingRect = imageBoundingRect;
 	textBoundingRect.height = (std::max)(textBoxHeight, TEXT_MIN_SIZE);
 	//textBoundingRect.y -= textBoundingRect.height;
 
 	cv::Size textSize = cv::getTextSize(text, fontface, scale, thickness, &baseline);
 	cv::Point textBottomLeftPoint(textBoundingRect.x + (textBoundingRect.width - textSize.width) / 2, textBoundingRect.y + (textBoundingRect.height + textSize.height) / 2);
 
-	cv::rectangle(image, signBoundingRect, COLOR_LABEL_BOX_HSV, 2);
+	cv::rectangle(image, imageBoundingRect, COLOR_LABEL_BOX_HSV, 2);
 	cv::rectangle(image, textBoundingRect, COLOR_LABEL_BOX_HSV, 2);
 	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT_HSV, thickness);
 }

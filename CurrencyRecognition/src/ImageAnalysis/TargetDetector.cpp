@@ -8,7 +8,7 @@ TargetDetector::TargetDetector(Ptr<FeatureDetector> featureDetector, Ptr<Descrip
 TargetDetector::~TargetDetector() {}
 
 
-bool TargetDetector::setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs, const string& targetTag) {
+bool TargetDetector::setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs, size_t targetTag) {
 	_targetImage = targetImage;	
 	_targetTag = targetTag;
 
@@ -64,14 +64,7 @@ bool TargetDetector::setupTargetROIs(const vector<KeyPoint>& targetKeypoints, co
 }
 
 
-float TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, float reprojectionThreshold) {
-	/*vector<KeyPoint> keypointsQueryImage;
-	_featureDetector->detect(queryImage, keypointsQueryImage);
-	if (keypointsQueryImage.size() < 4) { return false; }
-
-	Mat descriptorsQueryImage;
-	_descriptorExtractor->compute(queryImage, keypointsQueryImage, descriptorsQueryImage);*/
-
+Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, float reprojectionThreshold) {	
 	vector<DMatch> matches;
 	_descriptorMatcher->match(descriptorsQueryImage, _targetDescriptors, matches);
 
@@ -79,7 +72,9 @@ float TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, 
 	vector<DMatch> inliersOut;
 	vector<unsigned char> inliersMaskOut;
 	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetKeypoints, matches, homographyOut, inliersOut, inliersMaskOut);
-
-	return (float)inliersOut.size() / (float)matches.size();
+	vector<Point2f> contour;
+	float bestROIMatch = (float)inliersOut.size() / (float)matches.size(); // TODO bestROIMatch
+	
+	return new DetectorResult(_targetTag, contour, _contourColor, bestROIMatch, _targetImage, _targetKeypoints, keypointsQueryImage, matches, inliersOut, inliersMaskOut, homographyOut);
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </TargetDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
