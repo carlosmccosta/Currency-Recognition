@@ -186,6 +186,20 @@ bool ImageUtils::saveMatrix(string filename, string tag, const Mat& matrix) {
 }
 
 
+bool ImageUtils::matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptorMatcher, const Mat& descriptorsQueryImage, const Mat& targetDescriptors, vector<DMatch>& matchesFilteredOut, float maxDistanceRatio) {
+	matchesFilteredOut.clear();
+	vector< vector<DMatch> > matchesKNN;
+	descriptorMatcher->knnMatch(descriptorsQueryImage, targetDescriptors, matchesKNN, 2);
+	
+	for (size_t matchPos = 0; matchPos < matchesKNN.size(); ++matchPos) {		
+		if (matchesKNN[matchPos][0].distance <= maxDistanceRatio * matchesKNN[matchPos][1].distance) {
+			matchesFilteredOut.push_back(matchesKNN[matchPos][0]);
+		}
+	}
+
+	return !matchesFilteredOut.empty();
+}
+
 
 bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
 	Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,

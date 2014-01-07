@@ -53,7 +53,7 @@ class TargetDetector {
 		bool setupTargetROIs(const vector<KeyPoint>& targetKeypoints, const Mat& targetROIs);
 
 		Ptr<DetectorResult> analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, size_t minimumNumberInliers = 6, float reprojectionThreshold = 3.0f);
-		float computeBestROIMatch(vector<DMatch> inliers, size_t minimumNumberInliers = 6);
+		float computeBestROIMatch(const vector<DMatch>& inliers, size_t minimumNumberInliers = 6);
 
 		// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------
 		size_t getTargetTag() const { return _targetTag; }

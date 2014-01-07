@@ -50,10 +50,10 @@ namespace GUIUtils {
 	* \param image Image where the text is going to be drawn
 	* \param imageBoundingRect Rectangle with the region of interest were the text is going to be positioned inside the image
 	*/
-	void drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect, float labelHeightPercentage = 0.05, float textThicknessPercentage = 0.05);
+	void drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect, float labelHeightPercentage = 0.05, float textThicknessPercentage = 0.1);
 
 
-	void drawLabelInCenterOfROI(string text, Mat& image, const Rect& imageBoundingRect, float labelHeightPercentage = 0.25, float textThicknessPercentage = 0.05);
+	void drawLabelInCenterOfROI(string text, Mat& image, const Rect& imageBoundingRect, float labelHeightPercentage = 0.35, float textThicknessPercentage = 0.1);
 
 
 	/*!

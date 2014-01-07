@@ -96,6 +96,7 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 	Ptr<DetectorResult> bestDetectorResult;
 
 	int targetDetectorsSize = _targetDetectors.size();
+	bool validDetection = true;
 
 	do {
 		bestMatch = 0;
@@ -103,31 +104,32 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < targetDetectorsSize; ++i) {
 			Ptr<DetectorResult> detectorResult = _targetDetectors[i].analyzeImage(keypointsQueryImage, descriptorsQueryImage);
-			float contourArea = (float)cv::contourArea(detectorResult->getTargetContour());
-			float imageArea = (float)(image.cols * image.rows);
-			float contourAreaPercentage = contourArea / imageArea;
+			if (detectorResult->getBestROIMatch() > minimumMatchAllowed) {
+				float contourArea = (float)cv::contourArea(detectorResult->getTargetContour());
+				float imageArea = (float)(image.cols * image.rows);
+				float contourAreaPercentage = contourArea / imageArea;
 
-			if (contourAreaPercentage > minimumTargetAreaPercentage && cv::isContourConvex(detectorResult->getTargetContour())) {
-				#pragma omp critical
-				{
-					if (detectorResult->getBestROIMatch() > bestMatch) {
-						bestMatch = detectorResult->getBestROIMatch();
-						bestDetectorResult = detectorResult;
+				if (contourAreaPercentage > minimumTargetAreaPercentage && cv::isContourConvex(detectorResult->getTargetContour())) {
+					#pragma omp critical
+					{
+						if (detectorResult->getBestROIMatch() > bestMatch) {
+							bestMatch = detectorResult->getBestROIMatch();
+							bestDetectorResult = detectorResult;
+						}
 					}
 				}
 			}
 		}
 
-		if (bestDetectorResult.obj != NULL &&
-			bestMatch > minimumMatchAllowed &&
-			bestDetectorResult->getInliers().size() > minimumNumberInliers) {			
-			
+		validDetection = bestMatch > minimumMatchAllowed && bestDetectorResult->getInliers().size() > minimumNumberInliers;
+
+		if (bestDetectorResult.obj != NULL && validDetection) {			
 			detectorResults->push_back(bestDetectorResult);			
 
 			// remove inliers of best match to detect more occurrences of targets
 			ImageUtils::removeInliersFromKeypointsAndDescriptors(bestDetectorResult->getInliers(), keypointsQueryImage, descriptorsQueryImage);
 		}		
-	} while (bestMatch > minimumMatchAllowed);
+	} while (validDetection);
 
 	return detectorResults;
 }

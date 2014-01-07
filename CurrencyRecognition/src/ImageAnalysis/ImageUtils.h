@@ -23,12 +23,14 @@ using std::stringstream;
 
 
 using cv::Mat;
+using cv::Ptr;
 using cv::Vec3b;
 using cv::Vec4i;
 using cv::Point;
 using cv::Point2f;
 using cv::KeyPoint;
 using cv::DMatch;
+using cv::DescriptorMatcher;
 using cv::Scalar;
 using cv::Rect;
 using cv::FileStorage;
@@ -50,14 +52,14 @@ namespace ImageUtils {
 	bool loadMatrix(string filename, string tag, Mat& matrixOut);
 	bool saveMatrix(string filename, string tag, const Mat& matrix);
 
+	bool matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptorMatcher, const Mat& descriptorsQueryImage, const Mat& targetDescriptors, vector<DMatch>& matchesFilteredOut, float maxDistanceRatio = 0.7f);
 	bool refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
 		Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
 		float reprojectionThreshold = 3.0f, size_t minNumberMatchesAllowed = 4);
 
 	void drawContour(Mat& image, vector<Point2f> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
 
-	string getFilenameWithoutExtension(string filepath);
-
+	string getFilenameWithoutExtension(string filepath);	
 	void removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage);
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

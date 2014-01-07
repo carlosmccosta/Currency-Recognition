@@ -42,7 +42,7 @@
 #define TARGET_KEYPOINT_COLOR Scalar(0,255,0)
 #define NONTARGET_KEYPOINT_COLOR Scalar(0,0,255)
 
-#define IMAGE_OUTPUT_EXTENSION ".png"
+#define IMAGE_OUTPUT_EXTENSION ".jpg"
 
 #define FILENAME_SEPARATOR "__"
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </constants definitions> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

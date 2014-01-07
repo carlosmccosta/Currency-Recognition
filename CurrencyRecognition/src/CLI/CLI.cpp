@@ -149,7 +149,7 @@ void CLI::setupImageRecognition() {
 
 	switch (descriptorMatcherSelection) {
 		case 1: { descriptorMatcher = new cv::FlannBasedMatcher(flannIndexParams);	configurationTags << "_Flann-Matcher"; break; }
-		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, true);			configurationTags << "_BF-Matcher"; break; }
+		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, false);			configurationTags << "_BF-Matcher"; break; }
 		default: break;
 	}
 

@@ -2,6 +2,8 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <DetectorResult>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+DetectorResult::DetectorResult() : _bestROIMatch(0) {}
+
 DetectorResult::DetectorResult(size_t targetValue, const vector<Point2f>& targetContour, const Scalar& contourColor, float bestROIMatch,
 	const Mat& referenceImage, const vector<KeyPoint>& referenceImageKeypoints, const vector<KeyPoint>& keypointsQueryImage,
 	const vector<DMatch>& matches, const vector<DMatch>& inliers, const vector<unsigned char>& inliersMatchesMask, const Mat& homography) :
