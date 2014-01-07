@@ -96,7 +96,7 @@ int CLI::getUserOption() {
 void CLI::setupImageRecognition() {
 	cout << "\n\n ## Image recognition setup:\n" << endl;
 
-	int imagesDBLevelOfDetail = selectImagesDBLevelOfDetail();
+	int imagesDBLevelOfDetailSelection = selectImagesDBLevelOfDetail();
 	cout << "\n\n\n";
 	int featureDetectorSelection = selectFeatureDetector();
 	cout << "\n\n\n";
@@ -109,8 +109,7 @@ void CLI::setupImageRecognition() {
 	Ptr<DescriptorExtractor> descriptorExtractor;
 	Ptr<DescriptorMatcher> descriptorMatcher;
 
-	stringstream configurationTags;
-	string imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_LOW;	
+	stringstream configurationTags;	
 
 	switch (featureDetectorSelection) {
 		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; break; }
@@ -153,16 +152,23 @@ void CLI::setupImageRecognition() {
 		default: break;
 	}
 
+	vector<string> imagesDBLevelOfDetail;
 
-	switch (imagesDBLevelOfDetail) {
-		case 1: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_VERY_LOW;	configurationTags << "_veryLowQualityImageDB"; break; }
-		case 2: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_LOW;		configurationTags << "_lowQualityImageDB"; break; }
-		case 3: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_MEDIUM;	configurationTags << "_mediumQualityImageDB"; break; }
+	switch (imagesDBLevelOfDetailSelection) {
+		case 1: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_VERY_LOW);	configurationTags << "_veryLowQualityImageDB"; break; }
+		case 2: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_LOW);		configurationTags << "_lowQualityImageDB"; break; }
+		case 3: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_MEDIUM);	configurationTags << "_mediumQualityImageDB"; break; }
+		case 4: {
+			imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_VERY_LOW);
+			imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_LOW);
+			imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_MEDIUM);
+			configurationTags << "_dynamicQualityImageDB"; break;
+		}
 		default: break;
 	}
 	
 	
-	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetailStr);
+	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetail);
 }
 
 
@@ -171,8 +177,9 @@ int CLI::selectImagesDBLevelOfDetail() {
 	cout << "    1 - Very low  (256 pixels wide)\n";
 	cout << "    2 - Low       (512 pixels wide)\n";
 	cout << "    3 - Medium    (1024 pixels wide)\n";
+	cout << "    4 - Dynamic   (Uses one of the previous 3 LOD according to the query image resolution)\n";
 
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 3]: ", "Select one of the options above!", 1, 4);
+	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 4]: ", "Select one of the options above!", 1, 5);
 }
 
 

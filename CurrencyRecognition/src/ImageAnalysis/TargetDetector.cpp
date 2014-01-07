@@ -2,36 +2,48 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <TargetDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-TargetDetector::TargetDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Scalar contourColor) :
-	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher), _contourColor(contourColor) {}
+TargetDetector::TargetDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
+	size_t targetTag, Scalar contourColor, bool useInliersGlobalMatch) :
+	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
+	_targetTag(targetTag), _contourColor(contourColor), _useInliersGlobalMatch(useInliersGlobalMatch),
+	_currentLODIndex(0) {}
 
 TargetDetector::~TargetDetector() {}
 
 
-bool TargetDetector::setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs, size_t targetTag) {
-	_targetImage = targetImage;	
-	_targetTag = targetTag;
+bool TargetDetector::setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs) {
+	_targetsImage.push_back(targetImage);	
+	_targetsKeypoints.push_back(vector<KeyPoint>());
+	_targetsDescriptors.push_back(Mat());
+	_currentLODIndex = _targetsKeypoints.size() - 1;
 
 	// detect target keypoints
-	_featureDetector->detect(_targetImage, _targetKeypoints, targetROIs);
-	if (_targetKeypoints.size() < 4) { return false; }
+	_featureDetector->detect(_targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], targetROIs);
+	if (_targetsKeypoints[_currentLODIndex].size() < 4) { return false; }
 
 	// compute descriptors
-	_descriptorExtractor->compute(_targetImage, _targetKeypoints, _targetDescriptors);
+	_descriptorExtractor->compute(_targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], _targetsDescriptors[_currentLODIndex]);
 	
 	// train matcher to speedup recognition in case flann is used
 	/*_descriptorMatcher->add(_targetDescriptors);
 	_descriptorMatcher->train();*/
 
 	// associate key points to ROIs
-	return setupTargetROIs(_targetKeypoints, targetROIs);
+	if (!_useInliersGlobalMatch) {
+		return setupTargetROIs(_targetsKeypoints[_currentLODIndex], targetROIs);
+	} else {
+		return true;
+	}
 }
 
 
 bool TargetDetector::setupTargetROIs(const vector<KeyPoint>& targetKeypoints, const Mat& targetROIs) {
+	_targetKeypointsAssociatedROIsIndexes.push_back(vector<size_t>());
+	_numberOfKeypointInsideContours.push_back(vector<size_t>());
+
 	if (targetKeypoints.empty()) { return false; }
 	
-	_targetKeypointsAssociatedROIsIndexes.resize(targetKeypoints.size());
+	_targetKeypointsAssociatedROIsIndexes[_currentLODIndex].resize(targetKeypoints.size());
 		
 	vector< vector<Point> > targetROIsContours;
 	vector<Vec4i> hierarchy;
@@ -46,27 +58,58 @@ bool TargetDetector::setupTargetROIs(const vector<KeyPoint>& targetKeypoints, co
 			// point inside contour or in the border
 			Point2f point = targetKeypoints[targetKeypointsIndex].pt;
 			if (cv::pointPolygonTest(targetROIsContours[contourIndex], point, false) >= 0) {
-				_targetKeypointsAssociatedROIsIndexes[targetKeypointsIndex] = contourIndex;
+				_targetKeypointsAssociatedROIsIndexes[_currentLODIndex][targetKeypointsIndex] = contourIndex;
 				break;
 			}
 		}
 	}
 	
-	_numberOfKeypointInsideContours.clear();
-	_numberOfKeypointInsideContours.resize(targetROIsContours.size(), 0);
+	_numberOfKeypointInsideContours[_currentLODIndex].clear();
+	_numberOfKeypointInsideContours[_currentLODIndex].resize(targetROIsContours.size(), 0);
 
-	for (size_t i = 0; i < _targetKeypointsAssociatedROIsIndexes.size(); ++i) {
-		size_t contourIndex = _targetKeypointsAssociatedROIsIndexes[i];
-		++_numberOfKeypointInsideContours[contourIndex];
+	for (size_t i = 0; i < _targetKeypointsAssociatedROIsIndexes[_currentLODIndex].size(); ++i) {
+		size_t contourIndex = _targetKeypointsAssociatedROIsIndexes[_currentLODIndex][i];
+		++_numberOfKeypointInsideContours[_currentLODIndex][contourIndex];
 	}
 
 	return true;
 }
 
 
+void TargetDetector::updateCurrentLODIndex(const Mat& imageToAnalyze) {
+	int halfImageResolution = imageToAnalyze.cols / 2;
+
+	size_t newLODIndex = 0;
+	for (size_t i = 1; i < _targetsImage.size(); ++i) {
+		int previousLODWidthResolution = _targetsImage[i - 1].cols;
+		int currentLODWidthResolution = _targetsImage[i].cols;
+
+		if (halfImageResolution > currentLODWidthResolution) {
+			newLODIndex = i; // use bigger resolution
+		} else if (halfImageResolution < previousLODWidthResolution) {
+			newLODIndex = i - 1; // use lower resolution
+			break;
+		} else {
+			int splittingPointResolutions = (currentLODWidthResolution - previousLODWidthResolution) * 0.80;
+			int imageOffsetResolution = currentLODWidthResolution - halfImageResolution;
+
+			if (imageOffsetResolution < splittingPointResolutions) {
+				newLODIndex = i - 1; // use lower resolution
+				break;
+			} else {
+				newLODIndex = i; // use bigger resolution
+				break;
+			}
+		}
+	}
+
+	_currentLODIndex = newLODIndex;
+}
+
+
 Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, size_t minimumNumberInliers, float reprojectionThreshold) {
 	vector<DMatch> matches;
-	ImageUtils::matchDescriptorsWithRatioTest(_descriptorMatcher, descriptorsQueryImage, _targetDescriptors, matches);
+	ImageUtils::matchDescriptorsWithRatioTest(_descriptorMatcher, descriptorsQueryImage, _targetsDescriptors[_currentLODIndex], matches);
 	//_descriptorMatcher->match(descriptorsQueryImage, _targetDescriptors, matches);
 	//_descriptorMatcher->match(descriptorsQueryImage, matches); // flann speedup
 
@@ -77,31 +120,34 @@ Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypoin
 	Mat homography;
 	vector<DMatch> inliers;
 	vector<unsigned char> inliersMaskOut;
-	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetKeypoints, matches, homography, inliers, inliersMaskOut, reprojectionThreshold);
+	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetsKeypoints[_currentLODIndex], matches, homography, inliers, inliersMaskOut, reprojectionThreshold);
 	
 	if (inliers.size() < minimumNumberInliers) {
 		return new DetectorResult();
 	}
 
-
-	float bestROIMatch = (float)inliers.size() / (float)matches.size(); // global match
-	//float bestROIMatch = computeBestROIMatch(inliers, minimumNumberInliers);
+	float bestROIMatch = 0;
+	if (_useInliersGlobalMatch) {
+		bestROIMatch = (float)inliers.size() / (float)matches.size();
+	} else {
+		bestROIMatch = computeBestROIMatch(inliers, minimumNumberInliers);
+	}	
 	
-	return new DetectorResult(_targetTag, vector<Point2f>(), _contourColor, bestROIMatch, _targetImage, _targetKeypoints, keypointsQueryImage, matches, inliers, inliersMaskOut, homography);
+	return new DetectorResult(_targetTag, vector<Point2f>(), _contourColor, bestROIMatch, _targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], keypointsQueryImage, matches, inliers, inliersMaskOut, homography);
 }
 
 
 float TargetDetector::computeBestROIMatch(const vector<DMatch>& inliers, size_t minimumNumberInliers) {
-	vector<size_t> roisInliersCounts(_numberOfKeypointInsideContours.size(), 0);
+	vector<size_t> roisInliersCounts(_numberOfKeypointInsideContours[_currentLODIndex].size(), 0);
 
 	for (size_t i = 0; i < inliers.size(); ++i) {
-		size_t roiIndex = _targetKeypointsAssociatedROIsIndexes[inliers[i].trainIdx];
+		size_t roiIndex = _targetKeypointsAssociatedROIsIndexes[_currentLODIndex][inliers[i].trainIdx];
 		++roisInliersCounts[roiIndex];
 	}
 
 	float bestROIMatch = 0;
 	for (size_t i = 0; i < roisInliersCounts.size(); ++i) {
-		size_t roiTotalCount = _numberOfKeypointInsideContours[i];
+		size_t roiTotalCount = _numberOfKeypointInsideContours[_currentLODIndex][i];
 		if (roiTotalCount != 0) {
 			float roiMatch = (float)roisInliersCounts[i] / (float)roiTotalCount;
 			if (roiMatch > bestROIMatch && roisInliersCounts[i] > minimumNumberInliers) {

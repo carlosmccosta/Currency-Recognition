@@ -1,11 +1,11 @@
 #include "ImageDetector.h"
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
-	Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesDirectory, string referenceImagesListPath, string testImagesListPath) :
+ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
+	const string& configurationTags, const vector<string>& referenceImagesDirectories, const string& referenceImagesListPath, const string& testImagesListPath) :
 	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
 	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags),
-	_referenceImagesDirectory(referenceImagesDirectory), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
+	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
 	
 	setupTargetDB(referenceImagesListPath);
 }
@@ -15,6 +15,8 @@ ImageDetector::~ImageDetector() {}
 
 
 bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
+	_targetDetectors.clear();
+
 	ifstream imgsList(referenceImagesListPath);
 	if (imgsList.is_open()) {
 		string configurationLine;
@@ -25,7 +27,7 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 		int numberOfFiles = configurations.size();
 
 
-		cout << "    -> Initializing recognition database with " << numberOfFiles << " reference images..." << endl;
+		cout << "    -> Initializing recognition database with " << numberOfFiles << " reference images and with " << _referenceImagesDirectories.size() << " levels of detail..." << endl;
 		PerformanceTimer performanceTimer;
 		performanceTimer.start();
 
@@ -39,28 +41,29 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 
 			ss >> filename >> separator >> targetTag >> separator >> color[2] >> color[1] >> color[0];
 
-			Mat targetImage;
-			if (_imagePreprocessor->loadAndPreprocessImage(_referenceImagesDirectory + filename, targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
-				string filenameWithoutExtension = ImageUtils::getFilenameWithoutExtension(filename);
-				if (filenameWithoutExtension != "") {					
+			TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, targetTag, color);
+
+			for (size_t i = 0; i < _referenceImagesDirectories.size(); ++i) {
+				string referenceImagesDirectory = _referenceImagesDirectories[i];
+				Mat targetImage;
+
+				string referenceImgePath = referenceImagesDirectory + filename;
+				cout << "     => Adding rerference image " << referenceImgePath << endl;
+				if (_imagePreprocessor->loadAndPreprocessImage(referenceImgePath, targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
+					string filenameWithoutExtension = ImageUtils::getFilenameWithoutExtension(filename);					
 					stringstream maskFilename;
-					maskFilename << _referenceImagesDirectory << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
+					maskFilename << referenceImagesDirectory << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
 
 					Mat targetROIs = imread(maskFilename.str(), CV_LOAD_IMAGE_GRAYSCALE);
 					if (targetROIs.data) {
-						cv::threshold(targetROIs, targetROIs, 250, 255, CV_THRESH_BINARY);
-						
-						TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, color);						
-						targetDetector.setupTargetRecognition(targetImage, targetROIs, targetTag);
-
-						#pragma omp critical
-						_targetDetectors.push_back(targetDetector);
+						cv::threshold(targetROIs, targetROIs, 250, 255, CV_THRESH_BINARY);							
+						targetDetector.setupTargetRecognition(targetImage, targetROIs);							
 
 						vector<KeyPoint>& targetKeypoints = targetDetector.getTargetKeypoints();
 						stringstream imageKeypointsFilename;
 						imageKeypointsFilename << REFERENCE_IMGAGES_ANALYSIS_DIRECTORY << filenameWithoutExtension << _configurationTags << IMAGE_OUTPUT_EXTENSION;
 						if (targetKeypoints.empty()) {
-							imwrite(imageKeypointsFilename.str(), targetImage); 
+							imwrite(imageKeypointsFilename.str(), targetImage);
 						} else {
 							Mat imageKeypoints;
 							cv::drawKeypoints(targetImage, targetKeypoints, imageKeypoints, TARGET_KEYPOINT_COLOR);
@@ -68,7 +71,10 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 						}
 					}					
 				}
-			}									
+			}
+
+			#pragma omp critical
+			_targetDetectors.push_back(targetDetector);
 		}
 
 		cout << "    -> Finished initialization of targets database in " << performanceTimer.getElapsedTimeFormated() << "\n" << endl;
@@ -103,6 +109,7 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < targetDetectorsSize; ++i) {
+			_targetDetectors[i].updateCurrentLODIndex(image);
 			Ptr<DetectorResult> detectorResult = _targetDetectors[i].analyzeImage(keypointsQueryImage, descriptorsQueryImage);
 			if (detectorResult->getBestROIMatch() > minimumMatchAllowed) {
 				float contourArea = (float)cv::contourArea(detectorResult->getTargetContour());

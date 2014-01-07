@@ -61,11 +61,11 @@ using cv::imwrite;
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 class ImageDetector {
 	public:
-		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
-			Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesDirectory = REFERENCE_IMGAGES_DIRECTORY_LOW, string referenceImagesListPath = REFERENCE_IMGAGES_LIST, string testImagesListPath = TEST_IMGAGES_LIST);
+		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
+			const string& configurationTags, const vector<string>& referenceImagesDirectories, const string& referenceImagesListPath = REFERENCE_IMGAGES_LIST, const string& testImagesListPath = TEST_IMGAGES_LIST);
 		virtual ~ImageDetector();
 
-		bool setupTargetDB(const string& referenceImagesListPath);
+		bool setupTargetDB(const string& referenceImagesListPaths);
 
 		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.10, size_t minimumNumberInliers = 6, float minimumTargetAreaPercentage = 0.05);
 		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension = "", bool useHighGUI = false);
@@ -78,7 +78,7 @@ class ImageDetector {
 
 		Ptr<ImagePreprocessor> _imagePreprocessor;
 		string _configurationTags;
-		string _referenceImagesDirectory;
+		vector<string> _referenceImagesDirectories;
 		string _referenceImagesListPath;
 		string _testImagesListPath;
 
