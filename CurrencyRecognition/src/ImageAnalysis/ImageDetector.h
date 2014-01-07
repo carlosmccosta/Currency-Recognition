@@ -67,8 +67,8 @@ class ImageDetector {
 
 		bool setupTargetDB(const string& referenceImagesListPath);
 
-		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image);
-		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilename = "", bool useHighGUI = false);
+		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.10, size_t minimumNumberInliers = 6, float minimumTargetAreaPercentage = 0.05);
+		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 
 	protected:						

@@ -2,10 +2,10 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <Image analysis>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-ImageAnalysis::ImageAnalysis(Ptr<ImagePreprocessor> imagePreprocessor, Ptr<ImageDetector> imageClassifierSVM) :
+ImageAnalysis::ImageAnalysis(Ptr<ImagePreprocessor> imagePreprocessor, Ptr<ImageDetector> imageDetector) :
 	_useCVHiGUI(true), _windowsInitialized(false), _optionsOneWindow(false),
 	_frameRate(30), _screenWidth(1920), _screenHeight(1080),
-	_imagePreprocessor(imagePreprocessor), _imageDetector(imageClassifierSVM) {};
+	_imagePreprocessor(imagePreprocessor), _imageDetector(imageDetector) {};
 
 
 ImageAnalysis::~ImageAnalysis() {
@@ -73,7 +73,7 @@ bool ImageAnalysis::processImage(Mat& image, bool useCVHighGUI) {
 	_imagePreprocessor->preprocessImage(_preprocessedImage, useCVHighGUI);
 	_processedImage = _preprocessedImage.clone();
 
-	// TODO : target detection
+	_imageDetector->detectTargetsAndOutputResults(_processedImage, "", true);
 
 	imshow(WINDOW_NAME_TARGET_DETECTION, _processedImage);	
 

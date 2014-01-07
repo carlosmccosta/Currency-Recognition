@@ -89,7 +89,7 @@ int CLI::getUserOption() {
 	cout << "   5 - Test detector from camera\n";
 	cout << "   0 - Exit\n";
 
-	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [0, 4]: ", "Select one of the options above!", 0, 6);
+	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [0, 5]: ", "Select one of the options above!", 0, 6);
 }
 
 
@@ -138,7 +138,7 @@ void CLI::setupImageRecognition() {
 	if (descriptorExtractorSelection > 2) { // binary descriptors		
 		bfNormType = cv::NORM_HAMMING;
 		//flannIndexParams = new cv::flann::HierarchicalClusteringIndexParams();
-		flannIndexParams = new cv::flann::LshIndexParams(20, 10, 2);
+		flannIndexParams = new cv::flann::LshIndexParams(12, 20, 2);
 	} else { // float descriptors		
 		bfNormType = cv::NORM_L2;
 		flannIndexParams = new cv::flann::KDTreeIndexParams();

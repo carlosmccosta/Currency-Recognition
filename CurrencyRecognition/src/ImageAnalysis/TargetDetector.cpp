@@ -64,17 +64,44 @@ bool TargetDetector::setupTargetROIs(const vector<KeyPoint>& targetKeypoints, co
 }
 
 
-Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, float reprojectionThreshold) {	
+Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, size_t minimumNumberInliers, float reprojectionThreshold) {
 	vector<DMatch> matches;
 	_descriptorMatcher->match(descriptorsQueryImage, _targetDescriptors, matches);
+	//_descriptorMatcher->match(descriptorsQueryImage, matches); // flann speedup
 
 	Mat homographyOut;
 	vector<DMatch> inliersOut;
 	vector<unsigned char> inliersMaskOut;
 	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetKeypoints, matches, homographyOut, inliersOut, inliersMaskOut);
 	vector<Point2f> contour;
-	float bestROIMatch = (float)inliersOut.size() / (float)matches.size(); // TODO bestROIMatch
+
+
+	//float bestROIMatch = (float)inliersOut.size() / (float)matches.size(); // global match
+	float bestROIMatch = computeBestROIMatch(inliersOut);
 	
 	return new DetectorResult(_targetTag, contour, _contourColor, bestROIMatch, _targetImage, _targetKeypoints, keypointsQueryImage, matches, inliersOut, inliersMaskOut, homographyOut);
+}
+
+
+float TargetDetector::computeBestROIMatch(vector<DMatch> inliers, size_t minimumNumberInliers) {
+	vector<size_t> roisInliersCounts(_numberOfKeypointInsideContours.size());
+
+	for (size_t i = 0; i < inliers.size(); ++i) {
+		size_t roiIndex = _targetKeypointsAssociatedROIsIndexes[inliers[i].trainIdx];
+		++roisInliersCounts[roiIndex];
+	}
+
+	float bestROIMatch = 0;
+	for (size_t i = 0; i < roisInliersCounts.size(); ++i) {
+		size_t roiTotalCount = _numberOfKeypointInsideContours[i];
+		if (roiTotalCount != 0) {
+			float roiMatch = (float)roisInliersCounts[i] / (float)roiTotalCount;
+			if (roiMatch > bestROIMatch && roisInliersCounts[i] > minimumNumberInliers) {
+				bestROIMatch = roiMatch;
+			}
+		}
+	}
+
+	return bestROIMatch;
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </TargetDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

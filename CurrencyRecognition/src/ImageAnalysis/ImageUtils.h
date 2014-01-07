@@ -57,5 +57,7 @@ namespace ImageUtils {
 	void drawContour(Mat& image, vector<Point2f> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
 
 	string getFilenameWithoutExtension(string filepath);
+
+	void removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage);
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

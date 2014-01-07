@@ -30,7 +30,7 @@ DetectorEvaluationResult::DetectorEvaluationResult(vector<size_t> results, vecto
 	
 	_falseNegatives = expectedResults.size();
 
-	updateMeasures();	
+	updateMeasures();
 }
 
 DetectorEvaluationResult::DetectorEvaluationResult(Mat& votingMask, vector<Mat>& targetMasks, unsigned short votingMaskThreshold) :

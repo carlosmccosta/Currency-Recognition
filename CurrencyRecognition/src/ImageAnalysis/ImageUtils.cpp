@@ -238,7 +238,35 @@ string ImageUtils::getFilenameWithoutExtension(string filepath) {
 	if (dotPosition != string::npos) {
 		return filepath.substr(0, dotPosition);
 	} else {
-		return "";
+		return filepath;
 	}
+}
+
+
+void ImageUtils::removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage) {
+	vector<int> inliersKeypointsPositions; // positions to remove
+
+	for (size_t inlierIndex = 0; inlierIndex < inliers.size(); ++inlierIndex) {
+		DMatch match = inliers[inlierIndex];
+		inliersKeypointsPositions.push_back(match.queryIdx);
+	}
+
+	sort(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end()); // must sort to delete from the end of vector in order to delete correct keypoints indexes
+	
+	/*for (int i = inliersKeypointsPositions.size() - 1; i >= 0; --i) {
+		keypointsQueryImage.erase(keypointsQueryImage.begin() + inliersKeypointsPositions[i]);		
+	}*/
+
+	vector<KeyPoint> keypointsQueryImageBackup = keypointsQueryImage;
+	keypointsQueryImage.clear();
+	Mat filteredDescriptors;		
+	for (int rowIndex = 0; rowIndex < descriptorsQueryImage.rows; ++rowIndex) {
+		if (!binary_search(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end(), rowIndex)) {
+			keypointsQueryImage.push_back(keypointsQueryImageBackup[rowIndex]);
+			filteredDescriptors.push_back(descriptorsQueryImage.row(rowIndex));			
+		}
+	}
+
+	filteredDescriptors.copyTo(descriptorsQueryImage);
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

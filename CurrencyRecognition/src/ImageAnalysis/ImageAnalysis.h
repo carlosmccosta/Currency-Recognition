@@ -57,7 +57,7 @@ class ImageAnalysis {
 	public:
 		
 		/// Constructor with initialization of parameters with default value		 		 
-		ImageAnalysis(Ptr<ImagePreprocessor> imagePreprocessor, Ptr<ImageDetector> imageClassifierSVM);
+		ImageAnalysis(Ptr<ImagePreprocessor> imagePreprocessor, Ptr<ImageDetector> imageDetector);
 		
 		/// ImageAnalysis destructor that performs cleanup of OpenCV HighGUI windows (in case they are used)		 
 		virtual ~ImageAnalysis();			

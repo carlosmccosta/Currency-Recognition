@@ -2,11 +2,11 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <GUIUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect) {
-	int textBoxHeight = (int)(imageBoundingRect.height * 0.15);
+void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& imageBoundingRect, float labelHeightPercentage, float textThicknessPercentage) {
+	int textBoxHeight = (int)(imageBoundingRect.height * labelHeightPercentage);
 	int fontface = cv::FONT_HERSHEY_SIMPLEX;
 	double scale = (double)textBoxHeight / 46.0;
-	int thickness = (std::max)(1, (int)(textBoxHeight * 0.05));
+	int thickness = (std::max)(1, (int)(textBoxHeight * textThicknessPercentage));
 	int baseline = 0;
 
 	Rect textBoundingRect = imageBoundingRect;
@@ -18,6 +18,24 @@ void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& imageBounding
 
 	cv::rectangle(image, imageBoundingRect, COLOR_LABEL_BOX_HSV, 2);
 	cv::rectangle(image, textBoundingRect, COLOR_LABEL_BOX_HSV, 2);
+	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT_HSV, thickness);
+}
+
+
+void GUIUtils::drawLabelInCenterOfROI(string text, Mat& image, const Rect& roiBoundingRect, float labelHeightPercentage, float textThicknessPercentage) {
+	int textBoxHeight = (int)(roiBoundingRect.height * labelHeightPercentage);
+	int fontface = cv::FONT_HERSHEY_SIMPLEX;
+	double scale = (double)textBoxHeight / 46.0;
+	int thickness = (std::max)(1, (int)(textBoxHeight * textThicknessPercentage));
+	int baseline = 0;
+
+	Rect textBoundingRect = roiBoundingRect;
+	textBoundingRect.height = (std::max)(textBoxHeight, TEXT_MIN_SIZE);
+	textBoundingRect.y += (int)((roiBoundingRect.height - textBoundingRect.height) / 2.0);
+
+	cv::Size textSize = cv::getTextSize(text, fontface, scale, thickness, &baseline);
+	cv::Point textBottomLeftPoint(textBoundingRect.x + (textBoundingRect.width - textSize.width) / 2, textBoundingRect.y + (textBoundingRect.height + textSize.height) / 2);
+	
 	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT_HSV, thickness);
 }
 
