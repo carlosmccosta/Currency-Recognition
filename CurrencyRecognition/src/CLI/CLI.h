@@ -44,6 +44,7 @@ class CLI {
 		int getUserOption();
 		void setupImageRecognition();
 
+		int selectImagesDBLevelOfDetail();
 		int selectFeatureDetector();
 		int selectDescriptorExtractor();
 		int selectDescriptorMatcher();		

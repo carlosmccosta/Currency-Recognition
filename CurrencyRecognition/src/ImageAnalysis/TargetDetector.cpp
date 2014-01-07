@@ -76,8 +76,8 @@ Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypoin
 	vector<Point2f> contour;
 
 
-	//float bestROIMatch = (float)inliersOut.size() / (float)matches.size(); // global match
-	float bestROIMatch = computeBestROIMatch(inliersOut);
+	float bestROIMatch = (float)inliersOut.size() / (float)matches.size(); // global match
+	//float bestROIMatch = computeBestROIMatch(inliersOut);
 	
 	return new DetectorResult(_targetTag, contour, _contourColor, bestROIMatch, _targetImage, _targetKeypoints, keypointsQueryImage, matches, inliersOut, inliersMaskOut, homographyOut);
 }

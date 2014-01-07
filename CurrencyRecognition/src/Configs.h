@@ -28,7 +28,9 @@
 #define MASK_TOKEN "_mask"
 #define MASK_EXTENSION ".png"
 
-#define REFERENCE_IMGAGES_DIRECTORY "imgs/currencyDB_mediumResolution/"
+#define REFERENCE_IMGAGES_DIRECTORY_VERY_LOW "imgs/currencyDB_veryLowResolution/"
+#define REFERENCE_IMGAGES_DIRECTORY_LOW "imgs/currencyDB_lowResolution/"
+#define REFERENCE_IMGAGES_DIRECTORY_MEDIUM "imgs/currencyDB_mediumResolution/"
 #define TEST_IMGAGES_DIRECTORY "imgs/testDB/"
 #define REFERENCE_IMGAGES_LIST "imgs/listCurrencyDB.txt"
 #define REFERENCE_IMGAGES_ANALYSIS_DIRECTORY "testResults/currencyDBAnalysis/"

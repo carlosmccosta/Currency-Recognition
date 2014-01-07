@@ -62,12 +62,12 @@ using cv::imwrite;
 class ImageDetector {
 	public:
 		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
-			Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesListPath = REFERENCE_IMGAGES_LIST, string testImagesListPath = TEST_IMGAGES_LIST);
+			Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesDirectory = REFERENCE_IMGAGES_DIRECTORY_LOW, string referenceImagesListPath = REFERENCE_IMGAGES_LIST, string testImagesListPath = TEST_IMGAGES_LIST);
 		virtual ~ImageDetector();
 
 		bool setupTargetDB(const string& referenceImagesListPath);
 
-		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.10, size_t minimumNumberInliers = 6, float minimumTargetAreaPercentage = 0.05);
+		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.05, size_t minimumNumberInliers = 6, float minimumTargetAreaPercentage = 0.05);
 		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 
@@ -78,6 +78,7 @@ class ImageDetector {
 
 		Ptr<ImagePreprocessor> _imagePreprocessor;
 		string _configurationTags;
+		string _referenceImagesDirectory;
 		string _referenceImagesListPath;
 		string _testImagesListPath;
 

@@ -2,9 +2,10 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
-	Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesListPath, string testImagesListPath) :	
+	Ptr<ImagePreprocessor> imagePreprocessor, string configurationTags, string referenceImagesDirectory, string referenceImagesListPath, string testImagesListPath) :
 	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
-	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
+	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags),
+	_referenceImagesDirectory(referenceImagesDirectory), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
 	
 	setupTargetDB(referenceImagesListPath);
 }
@@ -39,15 +40,15 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 			ss >> filename >> separator >> targetTag >> separator >> color[2] >> color[1] >> color[0];
 
 			Mat targetImage;
-			if (_imagePreprocessor->loadAndPreprocessImage(REFERENCE_IMGAGES_DIRECTORY + filename, targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
+			if (_imagePreprocessor->loadAndPreprocessImage(_referenceImagesDirectory + filename, targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
 				string filenameWithoutExtension = ImageUtils::getFilenameWithoutExtension(filename);
 				if (filenameWithoutExtension != "") {					
 					stringstream maskFilename;
-					maskFilename << REFERENCE_IMGAGES_DIRECTORY << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
+					maskFilename << _referenceImagesDirectory << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
 
 					Mat targetROIs = imread(maskFilename.str(), CV_LOAD_IMAGE_GRAYSCALE);
 					if (targetROIs.data) {
-						cv::threshold(targetROIs, targetROIs, 127, 255, CV_THRESH_BINARY);
+						cv::threshold(targetROIs, targetROIs, 250, 255, CV_THRESH_BINARY);
 						
 						TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, color);						
 						targetDetector.setupTargetRecognition(targetImage, targetROIs, targetTag);
@@ -117,10 +118,11 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 			}
 		}
 
-		if (bestDetectorResult.obj != NULL && bestMatch > minimumMatchAllowed) {
-			if (bestDetectorResult->getInliers().size() > minimumNumberInliers) {
-				detectorResults->push_back(bestDetectorResult);
-			}
+		if (bestDetectorResult.obj != NULL &&
+			bestMatch > minimumMatchAllowed &&
+			bestDetectorResult->getInliers().size() > minimumNumberInliers) {			
+			
+			detectorResults->push_back(bestDetectorResult);			
 
 			// remove inliers of best match to detect more occurrences of targets
 			ImageUtils::removeInliersFromKeypointsAndDescriptors(bestDetectorResult->getInliers(), keypointsQueryImage, descriptorsQueryImage);
@@ -132,9 +134,9 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 
 
 vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension, bool useHighGUI) {
-	Ptr< vector< Ptr<DetectorResult> > > detectorResultsOut = detectTargets(image);
-	vector<size_t> results;	
 	Mat imageBackup = image.clone();
+	Ptr< vector< Ptr<DetectorResult> > > detectorResultsOut = detectTargets(image);
+	vector<size_t> results;		
 
 	for (size_t i = 0; i < detectorResultsOut->size(); ++i) {		
 		Ptr<DetectorResult> detectorResult = (*detectorResultsOut)[i];		
@@ -147,19 +149,20 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 		stringstream ss;
 		ss << detectorResult->getTargetValue();
 
-		Mat imageMatchesSingle = imageBackup.clone();
+		Mat imageMatchesSingle = imageBackup.clone();		
+		Mat matchesInliers = detectorResult->getInliersMatches(imageMatchesSingle);
+
 		try {
 			Rect boundingBox = cv::boundingRect(targetContour);
 			ImageUtils::correctBoundingBox(boundingBox, image.cols, image.rows);
 			GUIUtils::drawLabelInCenterOfROI(ss.str(), image, boundingBox);
-			GUIUtils::drawLabelInCenterOfROI(ss.str(), imageMatchesSingle, boundingBox);
+			GUIUtils::drawLabelInCenterOfROI(ss.str(), matchesInliers, boundingBox);
 			ImageUtils::drawContour(image, targetContour, detectorResult->getContourColor());
-			ImageUtils::drawContour(imageMatchesSingle, targetContour, detectorResult->getContourColor());
+			ImageUtils::drawContour(matchesInliers, targetContour, detectorResult->getContourColor());
 		} catch (...) {
 			std::cerr << "!!! Drawing outside image !!!" << endl;
 		}
 
-		Mat matchesInliers = detectorResult->getInliersMatches(imageMatchesSingle);
 		if (useHighGUI) {
 			stringstream windowName;
 			windowName << "Target inliers matches (window " << i << ")";
@@ -172,6 +175,28 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 			imwrite(imageOutputFilename.str(), matchesInliers);
 		}		
 	}	
+
+	sort(results.begin(), results.end());
+
+	cout << "    -> Detected " << results.size() << " targets";
+	size_t globalResult = 0;
+	stringstream resultsSS;
+	if (!results.empty()) {
+		resultsSS << " (";
+		for (size_t i = 0; i < results.size(); i++) {
+			size_t resultValue = results[i];
+			resultsSS << " " << resultValue;
+			globalResult += resultValue;
+		}
+		resultsSS << " )";
+		cout << resultsSS.str();
+	}
+	cout << endl;
+
+	stringstream globalResultSS;
+	globalResultSS << "Global result: " << globalResult << resultsSS.str();
+	Rect globalResultBoundingBox(0, 0, image.cols, image.rows);
+	GUIUtils::drawImageLabel(globalResultSS.str(), image, globalResultBoundingBox);
 
 	return results;
 }
@@ -227,28 +252,7 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 			Mat imagePreprocessed;
 			cout << "\n    -> Evaluating image " << imageFilename << " (" << (i + 1) << "/" << numberOfTests << ")" << endl;
 			if (_imagePreprocessor->loadAndPreprocessImage(imageFilenameWithPath, imagePreprocessed, CV_LOAD_IMAGE_GRAYSCALE, false)) {				
-				vector<size_t> results = detectTargetsAndOutputResults(imagePreprocessed, imageFilenameWithoutExtension, false);
-				sort(results.begin(), results.end());
-
-				cout << "    -> Detected " << results.size() << " targets";
-				size_t globalResult = 0;
-				stringstream resultsSS;
-				if (!results.empty()) {
-					resultsSS << " (";
-					for (size_t i = 0; i < results.size(); i++) {
-						size_t resultValue = results[i];
-						resultsSS << " " << resultValue;
-						globalResult += resultValue;
-					}
-					resultsSS << " )";
-					cout << resultsSS.str();
-				}
-				cout << endl;
-
-				stringstream globalResultSS;
-				globalResultSS << "Global result: " << globalResult << resultsSS.str();
-				Rect globalResultBoundingBox(0, 0, imagePreprocessed.cols, imagePreprocessed.rows);
-				GUIUtils::drawImageLabel(globalResultSS.str(), imagePreprocessed, globalResultBoundingBox);
+				vector<size_t> results = detectTargetsAndOutputResults(imagePreprocessed, imageFilenameWithoutExtension, false);				
 
 				detectorEvaluationResult = DetectorEvaluationResult(results, expectedResults[i]);
 				globalPrecision += detectorEvaluationResult.getPrecision();

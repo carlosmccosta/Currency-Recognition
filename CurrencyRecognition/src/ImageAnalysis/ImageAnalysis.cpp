@@ -20,7 +20,7 @@ bool ImageAnalysis::processImage(string path, bool useCVHighGUI) {
 	bool loadSuccessful = true;
 	if (path != "") {
 		try {
-			imageToProcess = imread(path, CV_LOAD_IMAGE_COLOR);	
+			imageToProcess = imread(path, CV_LOAD_IMAGE_GRAYSCALE);	
 		} catch (...) {
 			loadSuccessful = false;
 		}			

@@ -96,6 +96,8 @@ int CLI::getUserOption() {
 void CLI::setupImageRecognition() {
 	cout << "\n\n ## Image recognition setup:\n" << endl;
 
+	int imagesDBLevelOfDetail = selectImagesDBLevelOfDetail();
+	cout << "\n\n\n";
 	int featureDetectorSelection = selectFeatureDetector();
 	cout << "\n\n\n";
 	int descriptorExtractorSelection = selectDescriptorExtractor();
@@ -108,6 +110,7 @@ void CLI::setupImageRecognition() {
 	Ptr<DescriptorMatcher> descriptorMatcher;
 
 	stringstream configurationTags;
+	string imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_LOW;	
 
 	switch (featureDetectorSelection) {
 		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; break; }
@@ -146,12 +149,30 @@ void CLI::setupImageRecognition() {
 
 	switch (descriptorMatcherSelection) {
 		case 1: { descriptorMatcher = new cv::FlannBasedMatcher(flannIndexParams);	configurationTags << "_Flann-Matcher"; break; }
-		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, false);			configurationTags << "_BF-Matcher"; break; }
+		case 2: { descriptorMatcher = new cv::BFMatcher(bfNormType, true);			configurationTags << "_BF-Matcher"; break; }
+		default: break;
+	}
+
+
+	switch (imagesDBLevelOfDetail) {
+		case 1: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_VERY_LOW;	configurationTags << "_veryLowQualityImageDB"; break; }
+		case 2: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_LOW;		configurationTags << "_lowQualityImageDB"; break; }
+		case 3: { imagesDBLevelOfDetailStr = REFERENCE_IMGAGES_DIRECTORY_MEDIUM;	configurationTags << "_mediumQualityImageDB"; break; }
 		default: break;
 	}
 	
 	
-	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str());
+	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetailStr);
+}
+
+
+int CLI::selectImagesDBLevelOfDetail() {
+	cout << "  => Select images database level of detail:\n";
+	cout << "    1 - Very low  (256 pixels wide)\n";
+	cout << "    2 - Low       (512 pixels wide)\n";
+	cout << "    3 - Medium    (1024 pixels wide)\n";
+
+	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 3]: ", "Select one of the options above!", 1, 4);
 }
 
 

@@ -3,9 +3,9 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <constants definitions> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #define TEXT_MIN_SIZE 12
-#define COLOR_TEXT_HSV Scalar(30, 255, 255)
-#define COLOR_LABEL_BOX_HSV Scalar(45,255,255)
-#define COLOR_LABEL_TEXT_HSV Scalar(45,255,255)
+#define COLOR_TEXT Scalar(30, 255, 255)
+#define COLOR_LABEL_BOX Scalar(45, 255, 255)
+#define COLOR_LABEL_TEXT Scalar(214, 60, 5)
 
 #define	WINDOW_HEADER_HEIGHT 32
 #define WINDOW_FRAME_THICKNESS 8

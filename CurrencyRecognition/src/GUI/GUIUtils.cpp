@@ -16,9 +16,9 @@ void GUIUtils::drawImageLabel(string text, Mat& image, const Rect& imageBounding
 	cv::Size textSize = cv::getTextSize(text, fontface, scale, thickness, &baseline);
 	cv::Point textBottomLeftPoint(textBoundingRect.x + (textBoundingRect.width - textSize.width) / 2, textBoundingRect.y + (textBoundingRect.height + textSize.height) / 2);
 
-	cv::rectangle(image, imageBoundingRect, COLOR_LABEL_BOX_HSV, 2);
-	cv::rectangle(image, textBoundingRect, COLOR_LABEL_BOX_HSV, 2);
-	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT_HSV, thickness);
+	cv::rectangle(image, imageBoundingRect, COLOR_LABEL_BOX, 2);
+	cv::rectangle(image, textBoundingRect, COLOR_LABEL_BOX, 2);
+	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT, thickness);
 }
 
 
@@ -36,7 +36,7 @@ void GUIUtils::drawLabelInCenterOfROI(string text, Mat& image, const Rect& roiBo
 	cv::Size textSize = cv::getTextSize(text, fontface, scale, thickness, &baseline);
 	cv::Point textBottomLeftPoint(textBoundingRect.x + (textBoundingRect.width - textSize.width) / 2, textBoundingRect.y + (textBoundingRect.height + textSize.height) / 2);
 	
-	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT_HSV, thickness);
+	cv::putText(image, text, textBottomLeftPoint, fontface, scale, COLOR_LABEL_TEXT, thickness);
 }
 
 

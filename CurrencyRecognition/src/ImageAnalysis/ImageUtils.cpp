@@ -196,7 +196,7 @@ bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoi
 	// Prepare data for cv::findHomography
 	vector<Point2f> srcPoints(matches.size());
 	vector<Point2f> dstPoints(matches.size());
-	for (size_t i = 0; i < matches.size(); i++) {
+	for (size_t i = 0; i < matches.size(); ++i) {
 		srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
 		dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
 	}
