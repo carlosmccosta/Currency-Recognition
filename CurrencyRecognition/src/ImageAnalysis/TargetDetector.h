@@ -53,8 +53,9 @@ class TargetDetector {
 		bool setupTargetRecognition(const Mat& targetImage, const Mat& targetROIs);
 		bool setupTargetROIs(const vector<KeyPoint>& targetKeypoints, const Mat& targetROIs);
 
-		void updateCurrentLODIndex(const Mat& imageToAnalyze);
-		Ptr<DetectorResult> analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, size_t minimumNumberInliers = 6, float reprojectionThreshold = 3.0f);
+		void updateCurrentLODIndex(const Mat& imageToAnalyze, float targetResolutionSelectionSplitOffset = 0.7);
+		Ptr<DetectorResult> analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage,
+			float maxDistanceRatio = 0.75f, float reprojectionThreshold = 3.0f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 6);
 		float computeBestROIMatch(const vector<DMatch>& inliers, size_t minimumNumberInliers = 6);
 
 		// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------

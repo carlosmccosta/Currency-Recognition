@@ -30,11 +30,11 @@
 #include <opencv2/highgui/highgui.hpp>
 
 // project includes
+#include "../Configs.h"
 #include "ImagePreprocessor.h"
 #include "DetectorEvaluationResult.h"
 #include "TargetDetector.h"
 #include "DetectorResult.h"
-#include "../Configs.h"
 #include "../libs/PerformanceTimer.h"
 #include "../GUI/GUIUtils.h"
 
@@ -62,12 +62,15 @@ using cv::imwrite;
 class ImageDetector {
 	public:
 		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
-			const string& configurationTags, const vector<string>& referenceImagesDirectories, const string& referenceImagesListPath = REFERENCE_IMGAGES_LIST, const string& testImagesListPath = TEST_IMGAGES_LIST);
+			const string& configurationTags, const vector<string>& referenceImagesDirectories,
+			bool useInliersGlobalMatch = true,
+			const string& referenceImagesListPath = REFERENCE_IMGAGES_LIST, const string& testImagesListPath = TEST_IMGAGES_LIST);
 		virtual ~ImageDetector();
 
-		bool setupTargetDB(const string& referenceImagesListPaths);
+		bool setupTargetDB(const string& referenceImagesListPaths, bool useInliersGlobalMatch = true);
 
-		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.10, size_t minimumNumberInliers = 6, float minimumTargetAreaPercentage = 0.05);
+		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.07, float minimumTargetAreaPercentage = 0.05,
+			float maxDistanceRatio = 0.75f, float reprojectionThresholdPercentage = 0.01f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 6);
 		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 

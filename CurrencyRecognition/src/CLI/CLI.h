@@ -13,10 +13,11 @@
 #include <opencv2/nonfree/features2d.hpp>
 
 // project includes
+#include "../Configs.h"
 #include "ConsoleInput.h"
 #include "../ImageAnalysis/ImageAnalysis.h"
 #include "../ImageAnalysis/ImageDetector.h"
-#include "../Configs.h"
+
 
 // namespace specific imports to avoid namespace pollution
 using std::cout;
@@ -45,6 +46,7 @@ class CLI {
 		void setupImageRecognition();
 
 		int selectImagesDBLevelOfDetail();
+		int selectInliersSelectionMethod();
 		int selectFeatureDetector();
 		int selectDescriptorExtractor();
 		int selectDescriptorMatcher();		

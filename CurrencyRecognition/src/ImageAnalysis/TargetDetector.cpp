@@ -76,7 +76,7 @@ bool TargetDetector::setupTargetROIs(const vector<KeyPoint>& targetKeypoints, co
 }
 
 
-void TargetDetector::updateCurrentLODIndex(const Mat& imageToAnalyze) {
+void TargetDetector::updateCurrentLODIndex(const Mat& imageToAnalyze, float targetResolutionSelectionSplitOffset) {
 	int halfImageResolution = imageToAnalyze.cols / 2;
 
 	size_t newLODIndex = 0;
@@ -90,7 +90,7 @@ void TargetDetector::updateCurrentLODIndex(const Mat& imageToAnalyze) {
 			newLODIndex = i - 1; // use lower resolution
 			break;
 		} else {
-			int splittingPointResolutions = (currentLODWidthResolution - previousLODWidthResolution) * 0.80;
+			int splittingPointResolutions = (int)((currentLODWidthResolution - previousLODWidthResolution) * targetResolutionSelectionSplitOffset);
 			int imageOffsetResolution = currentLODWidthResolution - halfImageResolution;
 
 			if (imageOffsetResolution < splittingPointResolutions) {
@@ -107,9 +107,10 @@ void TargetDetector::updateCurrentLODIndex(const Mat& imageToAnalyze) {
 }
 
 
-Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage, size_t minimumNumberInliers, float reprojectionThreshold) {
+Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypointsQueryImage, const Mat& descriptorsQueryImage,
+	float maxDistanceRatio, float reprojectionThreshold, double confidence, int maxIters, size_t minimumNumberInliers) {
 	vector<DMatch> matches;
-	ImageUtils::matchDescriptorsWithRatioTest(_descriptorMatcher, descriptorsQueryImage, _targetsDescriptors[_currentLODIndex], matches);
+	ImageUtils::matchDescriptorsWithRatioTest(_descriptorMatcher, descriptorsQueryImage, _targetsDescriptors[_currentLODIndex], matches, maxDistanceRatio);
 	//_descriptorMatcher->match(descriptorsQueryImage, _targetDescriptors, matches);
 	//_descriptorMatcher->match(descriptorsQueryImage, matches); // flann speedup
 
@@ -120,7 +121,7 @@ Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypoin
 	Mat homography;
 	vector<DMatch> inliers;
 	vector<unsigned char> inliersMaskOut;
-	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetsKeypoints[_currentLODIndex], matches, homography, inliers, inliersMaskOut, reprojectionThreshold);
+	ImageUtils::refineMatchesWithHomography(keypointsQueryImage, _targetsKeypoints[_currentLODIndex], matches, homography, inliers, inliersMaskOut, reprojectionThreshold, confidence, maxIters, minimumNumberInliers);
 	
 	if (inliers.size() < minimumNumberInliers) {
 		return new DetectorResult();

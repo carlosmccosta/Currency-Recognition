@@ -2,7 +2,9 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
-	const string& configurationTags, const vector<string>& referenceImagesDirectories, const string& referenceImagesListPath, const string& testImagesListPath) :
+	const string& configurationTags, const vector<string>& referenceImagesDirectories,
+	bool useInliersGlobalMatch,
+	const string& referenceImagesListPath, const string& testImagesListPath) :
 	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
 	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags),
 	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
@@ -14,7 +16,7 @@ ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<Descripto
 ImageDetector::~ImageDetector() {}
 
 
-bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
+bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool useInliersGlobalMatch) {
 	_targetDetectors.clear();
 
 	ifstream imgsList(referenceImagesListPath);
@@ -41,7 +43,7 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 
 			ss >> filename >> separator >> targetTag >> separator >> color[2] >> color[1] >> color[0];
 
-			TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, targetTag, color);
+			TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, targetTag, color, useInliersGlobalMatch);
 
 			for (size_t i = 0; i < _referenceImagesDirectories.size(); ++i) {
 				string referenceImagesDirectory = _referenceImagesDirectories[i];
@@ -86,7 +88,8 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath) {
 }
 
 
-Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, float minimumMatchAllowed, size_t minimumNumberInliers, float minimumTargetAreaPercentage) {
+Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, float minimumMatchAllowed, float minimumTargetAreaPercentage,
+	float maxDistanceRatio, float reprojectionThresholdPercentage, double confidence, int maxIters, size_t minimumNumberInliers) {
 	Ptr< vector< Ptr<DetectorResult> > > detectorResults(new vector< Ptr<DetectorResult> >());
 
 	vector<KeyPoint> keypointsQueryImage;
@@ -103,6 +106,8 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 
 	int targetDetectorsSize = _targetDetectors.size();
 	bool validDetection = true;
+	float reprojectionThreshold = image.cols * reprojectionThresholdPercentage;
+	//float reprojectionThreshold = 3.0;
 
 	do {
 		bestMatch = 0;
@@ -110,7 +115,7 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < targetDetectorsSize; ++i) {
 			_targetDetectors[i].updateCurrentLODIndex(image);
-			Ptr<DetectorResult> detectorResult = _targetDetectors[i].analyzeImage(keypointsQueryImage, descriptorsQueryImage);
+			Ptr<DetectorResult> detectorResult = _targetDetectors[i].analyzeImage(keypointsQueryImage, descriptorsQueryImage, maxDistanceRatio, reprojectionThreshold, confidence, maxIters, minimumNumberInliers);
 			if (detectorResult->getBestROIMatch() > minimumMatchAllowed) {
 				float contourArea = (float)cv::contourArea(detectorResult->getTargetContour());
 				float imageArea = (float)(image.cols * image.rows);
@@ -254,14 +259,14 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 			testPerformanceTimer.start();
 
 			string imageFilename = imageFilenames[i];
-			string imageFilenameWithoutExtension = ImageUtils::getFilenameWithoutExtension(imageFilename);
+			//string imageFilename = ImageUtils::getFilenameWithoutExtension("");
 			string imageFilenameWithPath = TEST_IMGAGES_DIRECTORY + imageFilenames[i];
 			stringstream detectorEvaluationResultSS;
 			DetectorEvaluationResult detectorEvaluationResult;
 			Mat imagePreprocessed;
 			cout << "\n    -> Evaluating image " << imageFilename << " (" << (i + 1) << "/" << numberOfTests << ")" << endl;
 			if (_imagePreprocessor->loadAndPreprocessImage(imageFilenameWithPath, imagePreprocessed, CV_LOAD_IMAGE_GRAYSCALE, false)) {				
-				vector<size_t> results = detectTargetsAndOutputResults(imagePreprocessed, imageFilenameWithoutExtension, false);				
+				vector<size_t> results = detectTargetsAndOutputResults(imagePreprocessed, imageFilename, false);				
 
 				detectorEvaluationResult = DetectorEvaluationResult(results, expectedResults[i]);
 				globalPrecision += detectorEvaluationResult.getPrecision();
@@ -274,7 +279,7 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 
 				if (saveResults) {
 					stringstream imageOutputFilename;
-					imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilenameWithoutExtension << FILENAME_SEPARATOR << _configurationTags << IMAGE_OUTPUT_EXTENSION;
+					imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << IMAGE_OUTPUT_EXTENSION;
 					imwrite(imageOutputFilename.str(), imagePreprocessed);
 					
 					resutlsFile << imageFilename << " -> " << detectorEvaluationResultSS.str() << endl;

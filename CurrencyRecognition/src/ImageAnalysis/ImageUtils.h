@@ -13,8 +13,9 @@
 #include <opencv2/highgui/highgui.hpp>
 
 // project includes
-#include "DetectorEvaluationResult.h"
 #include "../Configs.h"
+#include "DetectorEvaluationResult.h"
+#include "../libs/Transformations/Transformations.h"
 
 // namespace specific imports to avoid namespace pollution
 using std::vector;
@@ -50,12 +51,12 @@ namespace ImageUtils {
 	void findMaskBoundingRectangles(Mat& mask, vector<Rect>& targetsBoundingRectangles);
 	
 	bool loadMatrix(string filename, string tag, Mat& matrixOut);
-	bool saveMatrix(string filename, string tag, const Mat& matrix);
+	bool saveMatrix(string filename, string tag, const Mat& matrix);	
 
-	bool matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptorMatcher, const Mat& descriptorsQueryImage, const Mat& targetDescriptors, vector<DMatch>& matchesFilteredOut, float maxDistanceRatio = 0.7f);
+	bool matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptorMatcher, const Mat& descriptorsQueryImage, const Mat& targetDescriptors, vector<DMatch>& matchesFilteredOut, float maxDistanceRatio = 0.75f);
 	bool refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
 		Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
-		float reprojectionThreshold = 3.0f, size_t minNumberMatchesAllowed = 4);
+		float reprojectionThreshold = 3.0f, double confidence = 0.995, int maxIters = 5000, size_t minNumberMatchesAllowed = 4);
 
 	void drawContour(Mat& image, vector<Point2f> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
 

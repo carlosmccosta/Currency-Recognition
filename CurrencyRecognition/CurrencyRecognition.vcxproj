@@ -72,6 +72,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\libs\Transformations\ModelEstimator.cpp" />
+    <ClCompile Include="src\libs\Transformations\HomographyEstimator.cpp" />
     <ClCompile Include="src\ImageAnalysis\DetectorResult.cpp" />
     <ClCompile Include="src\CLI\CLI.cpp" />
     <ClCompile Include="src\CLI\ConsoleInput.cpp" />
@@ -85,8 +87,11 @@
     <ClCompile Include="src\libs\TimeUtils.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ImageAnalysis\TargetDetector.cpp" />
+    <ClCompile Include="src\libs\Transformations\Transformations.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\libs\Transformations\ModelEstimator.h" />
+    <ClInclude Include="src\libs\Transformations\HomographyEstimator.h" />
     <ClInclude Include="src\ImageAnalysis\DetectorResult.h" />
     <ClInclude Include="src\CLI\CLI.h" />
     <ClInclude Include="src\CLI\ConsoleInput.h" />
@@ -100,6 +105,7 @@
     <ClInclude Include="src\libs\PerformanceTimer.h" />
     <ClInclude Include="src\libs\TimeUtils.h" />
     <ClInclude Include="src\ImageAnalysis\TargetDetector.h" />
+    <ClInclude Include="src\libs\Transformations\Transformations.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

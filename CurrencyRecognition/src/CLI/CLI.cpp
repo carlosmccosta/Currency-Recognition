@@ -37,7 +37,7 @@ void CLI::startInteractiveCLI() {
 					if (userOption == 3 || userOption == 4) {
 						filename = "";
 						do {
-							cout << "  >> Path to file: ";
+							cout << "  >> Path to file inside imgs\\testDB folder: ";
 							filename = ConsoleInput::getInstance()->getLineCin();
 
 							if (filename == "") {
@@ -52,9 +52,12 @@ void CLI::startInteractiveCLI() {
 					imageAnalysis.setScreenWidth(screenWidth);
 					imageAnalysis.setScreenHeight(screenHeight);
 					imageAnalysis.setOptionsOneWindow(optionsOneWindow);
+
+					string imagePathInsideTestFolder = TEST_IMGAGES_DIRECTORY + filename;
+
 					switch (userOption) {
-						case 3: { if (!imageAnalysis.processImage(filename)) { cerr << "  => Failed to load image " << filename << "!" << endl; } break; }
-						case 4: { if (!imageAnalysis.processVideo(filename)) { cerr << "  => Failed to load video " << filename << "!" << endl; } break; }
+						case 3: { if (!imageAnalysis.processImage(imagePathInsideTestFolder)) { cerr << "  => Failed to load image " << imagePathInsideTestFolder << "!" << endl; } break; }
+						case 4: { if (!imageAnalysis.processVideo(imagePathInsideTestFolder)) { cerr << "  => Failed to load video " << imagePathInsideTestFolder << "!" << endl; } break; }
 						case 5: { if (!imageAnalysis.processVideo(cameraDeviceNumber)) { cerr << "  => Failed to open camera " << cameraDeviceNumber << "!" << endl; } break; }
 						default: break;
 					}				
@@ -98,6 +101,8 @@ void CLI::setupImageRecognition() {
 
 	int imagesDBLevelOfDetailSelection = selectImagesDBLevelOfDetail();
 	cout << "\n\n\n";
+	int inliersSelectionMethod = selectInliersSelectionMethod();
+	cout << "\n\n\n";
 	int featureDetectorSelection = selectFeatureDetector();
 	cout << "\n\n\n";
 	int descriptorExtractorSelection = selectDescriptorExtractor();
@@ -108,8 +113,8 @@ void CLI::setupImageRecognition() {
 	Ptr<FeatureDetector> featureDetector;
 	Ptr<DescriptorExtractor> descriptorExtractor;
 	Ptr<DescriptorMatcher> descriptorMatcher;
-
-	stringstream configurationTags;	
+	stringstream configurationTags;
+	bool inliersSelectionMethodFlagToUseGlobalMatch = true;
 
 	switch (featureDetectorSelection) {
 		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; break; }
@@ -156,8 +161,8 @@ void CLI::setupImageRecognition() {
 
 	switch (imagesDBLevelOfDetailSelection) {
 		case 1: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_VERY_LOW);	configurationTags << "_veryLowQualityImageDB"; break; }
-		case 2: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_LOW);		configurationTags << "_lowQualityImageDB"; break; }
-		case 3: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_MEDIUM);	configurationTags << "_mediumQualityImageDB"; break; }
+		case 2: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_LOW);			configurationTags << "_lowQualityImageDB"; break; }
+		case 3: { imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_MEDIUM);		configurationTags << "_mediumQualityImageDB"; break; }
 		case 4: {
 			imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_VERY_LOW);
 			imagesDBLevelOfDetail.push_back(REFERENCE_IMGAGES_DIRECTORY_LOW);
@@ -166,9 +171,15 @@ void CLI::setupImageRecognition() {
 		}
 		default: break;
 	}
+
+	switch (inliersSelectionMethod) {
+		case 1: { inliersSelectionMethodFlagToUseGlobalMatch = true;	configurationTags << "_globalMatch"; break; }
+		case 2: { inliersSelectionMethodFlagToUseGlobalMatch = false;	configurationTags << "_localMatch"; break; }
+		default: break;
+	}
 	
 	
-	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetail);
+	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetail, inliersSelectionMethodFlagToUseGlobalMatch);
 }
 
 
@@ -180,6 +191,15 @@ int CLI::selectImagesDBLevelOfDetail() {
 	cout << "    4 - Dynamic   (Uses one of the previous 3 LOD according to the query image resolution)\n";
 
 	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 4]: ", "Select one of the options above!", 1, 5);
+}
+
+
+int CLI::selectInliersSelectionMethod() {
+	cout << "  => Select method to choose the best target match:\n";
+	cout << "    1 - Best global match of feature points\n";
+	cout << "    2 - Best local match of feature points (achieved considering the ROIs specified in image masks as standalone patches)\n";
+
+	return ConsoleInput::getInstance()->getIntCin("\n >>> Option [1, 2]: ", "Select one of the options above!", 1, 3);
 }
 
 

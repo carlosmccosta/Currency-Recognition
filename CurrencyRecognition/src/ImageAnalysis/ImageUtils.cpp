@@ -203,7 +203,7 @@ bool ImageUtils::matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptor
 
 bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
 	Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
-	float reprojectionThreshold, size_t minNumberMatchesAllowed) {
+	float reprojectionThreshold, double confidence, int maxIters, size_t minNumberMatchesAllowed) {
 	
 	if (matches.size() < minNumberMatchesAllowed) { return false; }
 	
@@ -218,14 +218,14 @@ bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoi
 	// Find homography matrix and get inliers mask
 	inliersMaskOut.clear();
 	inliersMaskOut.resize(srcPoints.size(), 0);	
-	homographyOut = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, reprojectionThreshold, inliersMaskOut);
+	homographyOut = Transformations::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, reprojectionThreshold, inliersMaskOut, confidence, maxIters);
 		
 	for (size_t i = 0; i < inliersMaskOut.size(); ++i) {
 		if (inliersMaskOut[i] > 0)
 			inliersOut.push_back(matches[i]);
 	}
 
-	return !inliersOut.empty();
+	return (inliersOut.size() >= minNumberMatchesAllowed);
 }
 
 
