@@ -34,6 +34,7 @@ using cv::DMatch;
 using cv::DescriptorMatcher;
 using cv::Scalar;
 using cv::Rect;
+using cv::RotatedRect;
 using cv::FileStorage;
 using cv::imread;
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </includes> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -41,6 +42,7 @@ using cv::imread;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 namespace ImageUtils {
+	bool loadBinaryMask(string imagePath, Mat& binaryMaskOut);
 	void loadImageMasks(string imagePath, vector<Mat>& masks);
 	void retriveTargetsMasks(string imagePath, vector<Mat>& masksOut, Scalar lowerRange = Scalar(0, 0, 254), Scalar higherRange = Scalar(0, 0, 255));
 	bool mergeTargetMasks(vector<Mat>& masks, Mat& mergedMaskOut);
@@ -58,9 +60,12 @@ namespace ImageUtils {
 		Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
 		float reprojectionThreshold = 3.0f, double confidence = 0.995, int maxIters = 5000, size_t minNumberMatchesAllowed = 4);
 
-	void drawContour(Mat& image, vector<Point2f> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
+	void removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage);
+
+	void drawContour(Mat& image, vector<Point> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
+	double computeContourAspectRatio(vector<Point> contour);
+	double computeContourCircularity(vector<Point> contour);
 
 	string getFilenameWithoutExtension(string filepath);	
-	void removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage);
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

@@ -4,7 +4,7 @@
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <DetectorResult>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 DetectorResult::DetectorResult() : _bestROIMatch(0) {}
 
-DetectorResult::DetectorResult(size_t targetValue, const vector<Point2f>& targetContour, const Scalar& contourColor, float bestROIMatch,
+DetectorResult::DetectorResult(size_t targetValue, const vector<Point>& targetContour, const Scalar& contourColor, float bestROIMatch,
 	const Mat& referenceImage, const vector<KeyPoint>& referenceImageKeypoints, const vector<KeyPoint>& keypointsQueryImage,
 	const vector<DMatch>& matches, const vector<DMatch>& inliers, const vector<unsigned char>& inliersMatchesMask, const Mat& homography) :
 	
@@ -16,15 +16,20 @@ DetectorResult::DetectorResult(size_t targetValue, const vector<Point2f>& target
 DetectorResult::~DetectorResult() {}
 
 
-vector<Point2f>& DetectorResult::getTargetContour() {
+vector<Point>& DetectorResult::getTargetContour() {
 	if (_targetContour.empty()) {
 		vector<Point2f> corners;
-		corners.push_back(Point(0, 0));
-		corners.push_back(Point(_referenceImage.cols, 0));
-		corners.push_back(Point(_referenceImage.cols, _referenceImage.rows));
-		corners.push_back(Point(0, _referenceImage.rows));
+		corners.push_back(Point2f(0.0f, 0.0f));
+		corners.push_back(Point2f((float)_referenceImage.cols, 0.0f));
+		corners.push_back(Point2f((float)_referenceImage.cols, (float)_referenceImage.rows));
+		corners.push_back(Point2f(0.0f, (float)_referenceImage.rows));
 
-		cv::perspectiveTransform(corners, _targetContour, _homography);
+		vector<Point2f> transformedCorners;
+		cv::perspectiveTransform(corners, transformedCorners, _homography);
+
+		for (size_t i = 0; i < transformedCorners.size(); ++i) {
+			_targetContour.push_back(Point((int)transformedCorners[i].x, (int)transformedCorners[i].y));
+		}
 	}	
 
 	return _targetContour;

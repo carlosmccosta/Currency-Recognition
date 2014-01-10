@@ -7,9 +7,11 @@ ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<Descripto
 	const string& referenceImagesListPath, const string& testImagesListPath) :
 	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
 	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags),
-	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath) {
+	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath),
+	_contourAspectRatioRange(-1, -1), _contourCircularityRange(-1, -1) {
 	
 	setupTargetDB(referenceImagesListPath);
+	setupTargetsShapesRanges();
 }
 
 
@@ -56,10 +58,9 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 					stringstream maskFilename;
 					maskFilename << referenceImagesDirectory << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
 
-					Mat targetROIs = imread(maskFilename.str(), CV_LOAD_IMAGE_GRAYSCALE);
-					if (targetROIs.data) {
-						cv::threshold(targetROIs, targetROIs, 250, 255, CV_THRESH_BINARY);							
-						targetDetector.setupTargetRecognition(targetImage, targetROIs);							
+					Mat targetROIs;
+					if (ImageUtils::loadBinaryMask(maskFilename.str(), targetROIs)) {						
+						targetDetector.setupTargetRecognition(targetImage, targetROIs);					
 
 						vector<KeyPoint>& targetKeypoints = targetDetector.getTargetKeypoints();
 						stringstream imageKeypointsFilename;
@@ -84,6 +85,37 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 		return !_targetDetectors.empty();
 	} else {
 		return false;
+	}
+}
+
+
+void ImageDetector::setupTargetsShapesRanges(string maskPath) {
+	Mat shapeROIs;
+	if (ImageUtils::loadBinaryMask(maskPath, shapeROIs)) {
+		vector< vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		findContours(shapeROIs, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+		for (size_t i = 0; i < contours.size(); ++i) {
+			double contourAspectRatio = ImageUtils::computeContourAspectRatio(contours[i]);
+			double contourCircularity = ImageUtils::computeContourCircularity(contours[i]);
+
+			if (_contourAspectRatioRange[0] == -1 || contourAspectRatio < _contourAspectRatioRange[0]) {
+				_contourAspectRatioRange[0] = contourAspectRatio;
+			}
+
+			if (_contourAspectRatioRange[1] == -1 || contourAspectRatio > _contourAspectRatioRange[1]) {
+				_contourAspectRatioRange[1] = contourAspectRatio;
+			}
+
+			if (_contourCircularityRange[0] == -1 || contourCircularity < _contourCircularityRange[0]) {
+				_contourCircularityRange[0] = contourCircularity;
+			}
+
+			if (_contourCircularityRange[1] == -1 || contourCircularity > _contourCircularityRange[1]) {
+				_contourCircularityRange[1] = contourCircularity;
+			}
+		}		
 	}
 }
 
@@ -121,12 +153,20 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 				float imageArea = (float)(image.cols * image.rows);
 				float contourAreaPercentage = contourArea / imageArea;
 
-				if (contourAreaPercentage > minimumTargetAreaPercentage && cv::isContourConvex(detectorResult->getTargetContour())) {
-					#pragma omp critical
-					{
-						if (detectorResult->getBestROIMatch() > bestMatch) {
-							bestMatch = detectorResult->getBestROIMatch();
-							bestDetectorResult = detectorResult;
+				if (contourAreaPercentage > minimumTargetAreaPercentage) {
+					double contourAspectRatio = ImageUtils::computeContourAspectRatio(detectorResult->getTargetContour());
+					if (contourAspectRatio > _contourAspectRatioRange[0] && contourAspectRatio < _contourAspectRatioRange[1]) {
+						double contourCircularity = ImageUtils::computeContourCircularity(detectorResult->getTargetContour());
+						if (contourCircularity > _contourCircularityRange[0] && contourCircularity < _contourCircularityRange[1]) {
+							if (cv::isContourConvex(detectorResult->getTargetContour())) {
+								#pragma omp critical
+								{
+									if (detectorResult->getBestROIMatch() > bestMatch) {
+										bestMatch = detectorResult->getBestROIMatch();
+										bestDetectorResult = detectorResult;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -147,7 +187,7 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 }
 
 
-vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension, bool useHighGUI) {
+vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string imageFilename, bool useHighGUI) {
 	Mat imageBackup = image.clone();
 	Ptr< vector< Ptr<DetectorResult> > > detectorResultsOut = detectTargets(image);
 	vector<size_t> results;		
@@ -156,9 +196,7 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 		Ptr<DetectorResult> detectorResult = (*detectorResultsOut)[i];		
 		results.push_back(detectorResult->getTargetValue());
 
-		cv::drawKeypoints(image, detectorResult->getInliersKeypoints(), image, TARGET_KEYPOINT_COLOR);
-		vector<Point2f> targetContour;
-		targetContour = detectorResult->getTargetContour();
+		cv::drawKeypoints(image, detectorResult->getInliersKeypoints(), image, TARGET_KEYPOINT_COLOR);		
 
 		stringstream ss;
 		ss << detectorResult->getTargetValue();
@@ -167,12 +205,12 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 		Mat matchesInliers = detectorResult->getInliersMatches(imageMatchesSingle);
 
 		try {
-			Rect boundingBox = cv::boundingRect(targetContour);
+			Rect boundingBox = cv::boundingRect(detectorResult->getTargetContour());
 			ImageUtils::correctBoundingBox(boundingBox, image.cols, image.rows);
 			GUIUtils::drawLabelInCenterOfROI(ss.str(), image, boundingBox);
 			GUIUtils::drawLabelInCenterOfROI(ss.str(), matchesInliers, boundingBox);
-			ImageUtils::drawContour(image, targetContour, detectorResult->getContourColor());
-			ImageUtils::drawContour(matchesInliers, targetContour, detectorResult->getContourColor());
+			ImageUtils::drawContour(image, detectorResult->getTargetContour(), detectorResult->getContourColor());
+			ImageUtils::drawContour(matchesInliers, detectorResult->getTargetContour(), detectorResult->getContourColor());
 		} catch (...) {
 			std::cerr << "!!! Drawing outside image !!!" << endl;
 		}
@@ -185,7 +223,7 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 			cv::waitKey(10);
 		} else {
 			stringstream imageOutputFilename;
-			imageOutputFilename << TEST_OUTPUT_DIRECTORY << ImageUtils::getFilenameWithoutExtension(imageFilenameWithoutExtension) << FILENAME_SEPARATOR << _configurationTags << FILENAME_SEPARATOR << INLIERS_MATCHES << FILENAME_SEPARATOR << i << IMAGE_OUTPUT_EXTENSION;
+			imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << FILENAME_SEPARATOR << INLIERS_MATCHES << FILENAME_SEPARATOR << i << IMAGE_OUTPUT_EXTENSION;
 			imwrite(imageOutputFilename.str(), matchesInliers);
 		}		
 	}	
@@ -230,21 +268,14 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 	if (resutlsFile.is_open() && imgsList.is_open()) {
 		resutlsFile << RESULTS_FILE_HEADER << "\n" << endl;
 
-		string line;
+		string filename;
 		vector<string> imageFilenames;
 		vector< vector<size_t> > expectedResults;
-		while (getline(imgsList, line)) {
-			stringstream lineSS(line);
-			string filename;
-			string separator;
-			lineSS >> filename >> separator;
+		while (getline(imgsList, filename)) {											
 			imageFilenames.push_back(filename);
 
 			vector<size_t> expectedResultFromTest;
-			size_t numberExpected;
-			while (lineSS >> numberExpected) {
-				expectedResultFromTest.push_back(numberExpected);
-			}
+			extractExpectedResultsFromFilename(filename, expectedResultFromTest);
 			expectedResults.push_back(expectedResultFromTest);
 		}
 		int numberOfTests = imageFilenames.size();
@@ -302,5 +333,24 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 	}
 
 	return DetectorEvaluationResult(globalPrecision, globalRecall, globalAccuracy);
+}
+
+
+void ImageDetector::extractExpectedResultsFromFilename(string filename, vector<size_t>& expectedResultFromTestOut) {
+	for (size_t i = 0; i < filename.size(); ++i) {
+		char letter = filename[i];
+		if (letter == '-') {
+			filename[i] = ' ';
+		} else if (letter == '.' || letter == '_') {
+			filename = filename.substr(0, i);
+			break;
+		}
+	}
+	
+	stringstream ss(filename);
+	size_t number;	
+	while (ss >> number) {
+		expectedResultFromTestOut.push_back(number);
+	}
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

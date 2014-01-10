@@ -31,7 +31,7 @@ using cv::KeyPoint;
 class DetectorResult {
 	public:
 		DetectorResult();
-		DetectorResult(size_t targetValue, const vector<Point2f>& targetContour, const Scalar& contourColor, float bestROIMatch,
+		DetectorResult(size_t targetValue, const vector<Point>& targetContour, const Scalar& contourColor, float bestROIMatch,
 			const Mat& referenceImage, const vector<KeyPoint>& referenceImageKeypoints, const vector<KeyPoint>& keypointsQueryImage,
 			const vector<DMatch>& matches, const vector<DMatch>& inliers, const vector<unsigned char>& inliersMatchesMask, const Mat& homography);
 		
@@ -40,7 +40,7 @@ class DetectorResult {
 
 		// ------------------------------------------------------------------------------  <gets | sets> -------------------------------------------------------------------------------
 		size_t& getTargetValue() { return _targetValue; }		
-		vector<Point2f>& getTargetContour();
+		vector<Point>& getTargetContour();
 		Scalar& getContourColor() { return _contourColor; }		
 		float& getBestROIMatch() { return _bestROIMatch; }
 		Mat& getReferenceImage() { return _referenceImage; }
@@ -55,7 +55,7 @@ class DetectorResult {
 
 	protected:
 		size_t _targetValue;
-		vector<Point2f> _targetContour;
+		vector<Point> _targetContour;
 		Scalar _contourColor;
 		float _bestROIMatch;
 

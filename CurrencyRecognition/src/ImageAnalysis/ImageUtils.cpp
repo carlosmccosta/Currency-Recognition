@@ -2,6 +2,17 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+bool ImageUtils::loadBinaryMask(string imagePath, Mat& binaryMaskOut) {
+	binaryMaskOut = imread(imagePath, CV_LOAD_IMAGE_GRAYSCALE);
+	if (binaryMaskOut.data) {
+		cv::threshold(binaryMaskOut, binaryMaskOut, 250, 255, CV_THRESH_BINARY);
+		return true;
+	}
+
+	return false;
+}
+
+
 void ImageUtils::loadImageMasks(string imagePath, vector<Mat>& masks) {
 	size_t imageMaskNumber = 0;
 	bool masksAvailable = true;
@@ -229,7 +240,35 @@ bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoi
 }
 
 
-void ImageUtils::drawContour(Mat& image, vector<Point2f> contour, Scalar color, int thickness) {
+void ImageUtils::removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage) {
+	vector<int> inliersKeypointsPositions; // positions to remove
+
+	for (size_t inlierIndex = 0; inlierIndex < inliers.size(); ++inlierIndex) {
+		DMatch match = inliers[inlierIndex];
+		inliersKeypointsPositions.push_back(match.queryIdx);
+	}
+
+	sort(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end()); // must sort to delete from the end of vector in order to delete correct keypoints indexes
+
+	/*for (int i = inliersKeypointsPositions.size() - 1; i >= 0; --i) {
+	keypointsQueryImage.erase(keypointsQueryImage.begin() + inliersKeypointsPositions[i]);
+	}*/
+
+	vector<KeyPoint> keypointsQueryImageBackup = keypointsQueryImage;
+	keypointsQueryImage.clear();
+	Mat filteredDescriptors;
+	for (int rowIndex = 0; rowIndex < descriptorsQueryImage.rows; ++rowIndex) {
+		if (!binary_search(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end(), rowIndex)) {
+			keypointsQueryImage.push_back(keypointsQueryImageBackup[rowIndex]);
+			filteredDescriptors.push_back(descriptorsQueryImage.row(rowIndex));
+		}
+	}
+
+	filteredDescriptors.copyTo(descriptorsQueryImage);
+}
+
+
+void ImageUtils::drawContour(Mat& image, vector<Point> contour, Scalar color, int thickness) {
 	for (size_t i = 0; i < contour.size(); ++i) {
 		Point p1 = contour[i];
 		Point p2;
@@ -247,6 +286,24 @@ void ImageUtils::drawContour(Mat& image, vector<Point2f> contour, Scalar color, 
 }
 
 
+double ImageUtils::computeContourAspectRatio(vector<Point> contour) {	
+	RotatedRect contourEllipse = cv::minAreaRect(contour);
+	return contourEllipse.size.width / contourEllipse.size.height;
+}
+
+
+double ImageUtils::computeContourCircularity(vector<Point> contour) {
+	double area = contourArea(contour);
+	double perimeter = cv::arcLength(contour, true);
+
+	if (perimeter != 0) {
+		return (4.0 * CV_PI * area) / (perimeter * perimeter);
+	}
+
+	return 0;
+}
+
+
 string ImageUtils::getFilenameWithoutExtension(string filepath) {
 	size_t dotPosition = filepath.rfind(".");
 	if (dotPosition != string::npos) {
@@ -254,33 +311,5 @@ string ImageUtils::getFilenameWithoutExtension(string filepath) {
 	} else {
 		return filepath;
 	}
-}
-
-
-void ImageUtils::removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage) {
-	vector<int> inliersKeypointsPositions; // positions to remove
-
-	for (size_t inlierIndex = 0; inlierIndex < inliers.size(); ++inlierIndex) {
-		DMatch match = inliers[inlierIndex];
-		inliersKeypointsPositions.push_back(match.queryIdx);
-	}
-
-	sort(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end()); // must sort to delete from the end of vector in order to delete correct keypoints indexes
-	
-	/*for (int i = inliersKeypointsPositions.size() - 1; i >= 0; --i) {
-		keypointsQueryImage.erase(keypointsQueryImage.begin() + inliersKeypointsPositions[i]);		
-	}*/
-
-	vector<KeyPoint> keypointsQueryImageBackup = keypointsQueryImage;
-	keypointsQueryImage.clear();
-	Mat filteredDescriptors;		
-	for (int rowIndex = 0; rowIndex < descriptorsQueryImage.rows; ++rowIndex) {
-		if (!binary_search(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end(), rowIndex)) {
-			keypointsQueryImage.push_back(keypointsQueryImageBackup[rowIndex]);
-			filteredDescriptors.push_back(descriptorsQueryImage.row(rowIndex));			
-		}
-	}
-
-	filteredDescriptors.copyTo(descriptorsQueryImage);
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

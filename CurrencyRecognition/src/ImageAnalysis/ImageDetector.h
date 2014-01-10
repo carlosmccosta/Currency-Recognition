@@ -50,6 +50,7 @@ using std::ofstream;
 using cv::Mat;
 using cv::Ptr;
 using cv::Rect;
+using cv::Vec2d;
 using cv::FeatureDetector;
 using cv::DescriptorExtractor;
 using cv::DescriptorMatcher;
@@ -68,11 +69,14 @@ class ImageDetector {
 		virtual ~ImageDetector();
 
 		bool setupTargetDB(const string& referenceImagesListPaths, bool useInliersGlobalMatch = true);
+		void setupTargetsShapesRanges(string maskPath = TARGETS_SHAPE_MASKS);
 
 		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.07, float minimumTargetAreaPercentage = 0.05,
 			float maxDistanceRatio = 0.75f, float reprojectionThresholdPercentage = 0.01f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 6);
-		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilenameWithoutExtension = "", bool useHighGUI = false);
+		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilename = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
+
+		void extractExpectedResultsFromFilename(string filename, vector<size_t>& expectedResultFromTestOut);
 
 	protected:						
 		Ptr<FeatureDetector> _featureDetector;
@@ -86,5 +90,8 @@ class ImageDetector {
 		string _testImagesListPath;
 
 		vector<TargetDetector> _targetDetectors;
+
+		Vec2d _contourAspectRatioRange;
+		Vec2d _contourCircularityRange;
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

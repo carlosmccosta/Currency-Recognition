@@ -38,6 +38,8 @@
 
 #define TEST_OUTPUT_DIRECTORY "testResults/"
 
+#define TARGETS_SHAPE_MASKS "imgs/currencyDBShapes.png"
+
 #define TARGET_DETECTIONS_RECTANGLE_COLOR Scalar(45,255,255)
 #define TARGET_KEYPOINT_COLOR Scalar(0,255,0)
 #define NONTARGET_KEYPOINT_COLOR Scalar(0,0,255)

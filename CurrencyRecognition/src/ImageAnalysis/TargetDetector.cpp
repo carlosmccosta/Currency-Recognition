@@ -134,7 +134,7 @@ Ptr<DetectorResult> TargetDetector::analyzeImage(const vector<KeyPoint>& keypoin
 		bestROIMatch = computeBestROIMatch(inliers, minimumNumberInliers);
 	}	
 	
-	return new DetectorResult(_targetTag, vector<Point2f>(), _contourColor, bestROIMatch, _targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], keypointsQueryImage, matches, inliers, inliersMaskOut, homography);
+	return new DetectorResult(_targetTag, vector<Point>(), _contourColor, bestROIMatch, _targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], keypointsQueryImage, matches, inliers, inliersMaskOut, homography);
 }
 
 
