@@ -15,12 +15,12 @@ ImageAnalysis::~ImageAnalysis() {
 }
 
 
-bool ImageAnalysis::processImage(string path, bool useCVHighGUI) {		
+bool ImageAnalysis::processImage(string filename, bool useCVHighGUI) {				
 	Mat imageToProcess;
 	bool loadSuccessful = true;
-	if (path != "") {
+	if (filename != "") {
 		try {
-			imageToProcess = imread(path, CV_LOAD_IMAGE_GRAYSCALE);	
+			imageToProcess = imread(TEST_IMGAGES_DIRECTORY + filename, CV_LOAD_IMAGE_GRAYSCALE);
 		} catch (...) {
 			loadSuccessful = false;
 		}			
@@ -43,8 +43,10 @@ bool ImageAnalysis::processImage(string path, bool useCVHighGUI) {
 	_useCVHiGUI = useCVHighGUI;
 	_windowsInitialized = false;
 
+	_filename = filename;
 	bool status = processImage(imageToProcess, useCVHighGUI);	
-	
+	_filename = "";
+
 	while(waitKey(10) != ESC_KEYCODE) {}
 	
 	if (useCVHighGUI) {
@@ -73,7 +75,7 @@ bool ImageAnalysis::processImage(Mat& image, bool useCVHighGUI) {
 	_imagePreprocessor->preprocessImage(_preprocessedImage, useCVHighGUI);
 	_processedImage = _preprocessedImage.clone();
 
-	_imageDetector->detectTargetsAndOutputResults(_processedImage, "", true);
+	_imageDetector->detectTargetsAndOutputResults(_processedImage, _filename, true);
 
 	imshow(WINDOW_NAME_TARGET_DETECTION, _processedImage);	
 

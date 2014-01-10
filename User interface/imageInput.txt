@@ -1,0 +1,19 @@
+####################################################################################################
+  >>>                                    Currency recognition                                  <<<
+####################################################################################################
+
+ ## Menu:
+   1 - Setup image recognition configuration
+   2 - Evaluate detector
+   3 - Test detector from image
+   4 - Test detector from video
+   5 - Test detector from camera
+   0 - Exit
+
+ >>> Option [0, 5]: 3
+  >> Path to file inside imgs\testDB folder: 100-100.jpg
+    -> Detected 2 targets ( 100 100 )
+
+
+
+Press ENTER to continue...

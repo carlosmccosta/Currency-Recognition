@@ -1,0 +1,25 @@
+####################################################################################################
+  >>>                                    Currency recognition                                  <<<
+####################################################################################################
+
+ ## Menu:
+   1 - Setup image recognition configuration
+   2 - Evaluate detector
+   3 - Test detector from image
+   4 - Test detector from video
+   5 - Test detector from camera
+   0 - Exit
+
+ >>> Option [0, 5]: 0
+
+
+
+
++====================================================================================================+
+|  Version 1.0 developed in 2013 for Augmented Reality course (5th year, 1st semester, MIEIC, FEUP)  |
+|  Author: Carlos Miguel Correia da Costa (carlos.costa@fe.up.pt / carloscosta.cmcc@gmail.com)       |
++====================================================================================================+
+
+
+
+Press ENTER to continue...

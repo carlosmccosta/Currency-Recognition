@@ -23,7 +23,9 @@ bool TargetDetector::setupTargetRecognition(const Mat& targetImage, const Mat& t
 
 	// compute descriptors
 	_descriptorExtractor->compute(_targetsImage[_currentLODIndex], _targetsKeypoints[_currentLODIndex], _targetsDescriptors[_currentLODIndex]);
-	
+	if (_targetsDescriptors[_currentLODIndex].rows < 4) { return false; }
+
+
 	// train matcher to speedup recognition in case flann is used
 	/*_descriptorMatcher->add(_targetDescriptors);
 	_descriptorMatcher->train();*/

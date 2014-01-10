@@ -65,11 +65,11 @@ class ImageAnalysis {
 
 		/*!
 		 * \brief Processes the image from the specified path
-		 * \param path Full path to image
+		 * \param filename Image name
 		 * \param useCVHighGUI Optional parameter specifying if the results and the intermediate processing should be displayed using OpenCV HighGUI
 		 * \return true if image was successfully processed
 		 */
-		bool processImage(string path, bool useCVHighGUI = true);
+		bool processImage(string filename, bool useCVHighGUI = true);
 
 
 		/*!
@@ -149,5 +149,7 @@ class ImageAnalysis {
 
 		Ptr<ImagePreprocessor> _imagePreprocessor;
 		Ptr<ImageDetector> _imageDetector;
+
+		string _filename;
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <Image analysis>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

@@ -1,0 +1,124 @@
+####################################################################################################
+  >>>                                    Currency recognition                                  <<<
+####################################################################################################
+
+ ## Menu:
+   1 - Setup image recognition configuration
+   2 - Evaluate detector
+   3 - Test detector from image
+   4 - Test detector from video
+   5 - Test detector from camera
+   0 - Exit
+
+ >>> Option [0, 5]: 1
+
+
+ ## Image recognition setup:
+
+  => Select images database level of detail:
+    1 - Very low  (256 pixels wide)
+    2 - Low       (512 pixels wide)
+    3 - Medium    (1024 pixels wide)
+    4 - Dynamic   (Uses one of the previous 3 LOD according to the query image resolution)
+
+ >>> Option [1, 4]: 4
+
+
+
+  => Select method to choose the best target match:
+    1 - Best global match of feature points
+    2 - Best local match of feature points (achieved considering the ROIs specified in image masks as standalone patches)
+
+ >>> Option [1, 2]: 1
+
+
+
+  => Select feature detector:
+    1 - SIFT
+    2 - SURF
+    3 - GFTT
+    4 - FAST
+    5 - ORB
+    6 - BRISK
+    7 - STAR
+    8 - MSER
+
+ >>> Option [1, 7]: 1
+
+
+
+  => Select descriptor extractor:
+    1 - SIFT
+    2 - SURF
+    3 - FREAK
+    4 - BRIEF
+    5 - ORB
+    6 - BRISK
+
+ >>> Option [1, 6]: 1
+
+
+
+  => Select descriptor matcher:
+    1 - FlannBasedMatcher
+    2 - BFMatcher
+
+ >>> Option [1, 2]: 2
+
+
+
+    -> Initializing recognition database with 16 reference images and with 3 levels of detail...
+     => Adding reference image imgs/currencyDB_veryLowResolution/5eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/5eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/5eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/5eu_back_2002.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/5eu_back_2002.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/5eu_back_2002.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/5eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/5eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/5eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/5eu_front_2002.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/5eu_front_2002.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/5eu_front_2002.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/10eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/10eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/10eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/10eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/10eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/10eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/20eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/20eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/20eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/20eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/20eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/20eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/50eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/50eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/50eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/50eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/50eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/50eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/100eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/100eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/100eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/100eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/100eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/100eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/200eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/200eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/200eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/200eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/200eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/200eu_front.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/500eu_back.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/500eu_back.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/500eu_back.jpg
+     => Adding reference image imgs/currencyDB_veryLowResolution/500eu_front.jpg
+     => Adding reference image imgs/currencyDB_lowResolution/500eu_front.jpg
+     => Adding reference image imgs/currencyDB_mediumResolution/500eu_front.jpg
+    -> Finished initialization of targets database in 15.8475s
+
+
+
+
+Press ENTER to continue...

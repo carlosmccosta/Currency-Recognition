@@ -2,11 +2,11 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
-	const string& configurationTags, const vector<string>& referenceImagesDirectories,
+	const string& configurationTags, const string& selectorTags, const vector<string>& referenceImagesDirectories,
 	bool useInliersGlobalMatch,
 	const string& referenceImagesListPath, const string& testImagesListPath) :
 	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
-	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags),
+	_imagePreprocessor(imagePreprocessor), _configurationTags(configurationTags), _selectorTags(selectorTags),
 	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath),
 	_contourAspectRatioRange(-1, -1), _contourCircularityRange(-1, -1) {
 	
@@ -35,7 +35,7 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 		PerformanceTimer performanceTimer;
 		performanceTimer.start();
 
-		#pragma omp parallel for schedule(dynamic)
+		//#pragma omp parallel for schedule(dynamic)
 		for (int configIndex = 0; configIndex < numberOfFiles; ++configIndex) {
 			stringstream ss(configurations[configIndex]);
 			string filename;
@@ -51,12 +51,13 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 				string referenceImagesDirectory = _referenceImagesDirectories[i];
 				Mat targetImage;
 
-				string referenceImgePath = referenceImagesDirectory + filename;
-				cout << "     => Adding rerference image " << referenceImgePath << endl;
-				if (_imagePreprocessor->loadAndPreprocessImage(referenceImgePath, targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
+				stringstream referenceImgePath;
+				referenceImgePath << REFERENCE_IMGAGES_DIRECTORY << referenceImagesDirectory << "/" << filename;
+				cout << "     => Adding reference image " << referenceImgePath.str() << endl;
+				if (_imagePreprocessor->loadAndPreprocessImage(referenceImgePath.str(), targetImage, CV_LOAD_IMAGE_GRAYSCALE, false)) {
 					string filenameWithoutExtension = ImageUtils::getFilenameWithoutExtension(filename);					
 					stringstream maskFilename;
-					maskFilename << referenceImagesDirectory << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
+					maskFilename << REFERENCE_IMGAGES_DIRECTORY << referenceImagesDirectory << "/" << filenameWithoutExtension << MASK_TOKEN << MASK_EXTENSION;
 
 					Mat targetROIs;
 					if (ImageUtils::loadBinaryMask(maskFilename.str(), targetROIs)) {						
@@ -64,7 +65,7 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 
 						vector<KeyPoint>& targetKeypoints = targetDetector.getTargetKeypoints();
 						stringstream imageKeypointsFilename;
-						imageKeypointsFilename << REFERENCE_IMGAGES_ANALYSIS_DIRECTORY << filenameWithoutExtension << _configurationTags << IMAGE_OUTPUT_EXTENSION;
+						imageKeypointsFilename << REFERENCE_IMGAGES_ANALYSIS_DIRECTORY << filenameWithoutExtension << "_" << referenceImagesDirectory << _selectorTags << IMAGE_OUTPUT_EXTENSION;
 						if (targetKeypoints.empty()) {
 							imwrite(imageKeypointsFilename.str(), targetImage);
 						} else {
@@ -76,7 +77,7 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 				}
 			}
 
-			#pragma omp critical
+			//#pragma omp critical
 			_targetDetectors.push_back(targetDetector);
 		}
 
@@ -230,7 +231,7 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 
 	sort(results.begin(), results.end());
 
-	cout << "    -> Detected " << results.size() << " targets";
+	cout << "    -> Detected " << results.size() << (results.size() != 1 ? " targets" : " target");
 	size_t globalResult = 0;
 	stringstream resultsSS;
 	if (!results.empty()) {
@@ -249,6 +250,10 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 	globalResultSS << "Global result: " << globalResult << resultsSS.str();
 	Rect globalResultBoundingBox(0, 0, image.cols, image.rows);
 	GUIUtils::drawImageLabel(globalResultSS.str(), image, globalResultBoundingBox);
+
+	stringstream imageOutputFilename;
+	imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << IMAGE_OUTPUT_EXTENSION;
+	imwrite(imageOutputFilename.str(), image);
 
 	return results;
 }
@@ -308,11 +313,7 @@ DetectorEvaluationResult ImageDetector::evaluateDetector(const string& testImgsL
 
 				++numberTestImages;
 
-				if (saveResults) {
-					stringstream imageOutputFilename;
-					imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << IMAGE_OUTPUT_EXTENSION;
-					imwrite(imageOutputFilename.str(), imagePreprocessed);
-					
+				if (saveResults) {					
 					resutlsFile << imageFilename << " -> " << detectorEvaluationResultSS.str() << endl;
 				}
 			}

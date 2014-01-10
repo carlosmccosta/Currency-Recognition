@@ -51,13 +51,11 @@ void CLI::startInteractiveCLI() {
 					ImageAnalysis imageAnalysis(_imagePreprocessor, _imageDetector);
 					imageAnalysis.setScreenWidth(screenWidth);
 					imageAnalysis.setScreenHeight(screenHeight);
-					imageAnalysis.setOptionsOneWindow(optionsOneWindow);
-
-					string imagePathInsideTestFolder = TEST_IMGAGES_DIRECTORY + filename;
+					imageAnalysis.setOptionsOneWindow(optionsOneWindow);					
 
 					switch (userOption) {
-						case 3: { if (!imageAnalysis.processImage(imagePathInsideTestFolder)) { cerr << "  => Failed to load image " << imagePathInsideTestFolder << "!" << endl; } break; }
-						case 4: { if (!imageAnalysis.processVideo(imagePathInsideTestFolder)) { cerr << "  => Failed to load video " << imagePathInsideTestFolder << "!" << endl; } break; }
+						case 3: { if (!imageAnalysis.processImage(filename)) { cerr << "  => Failed to load image " << filename << "!" << endl; } break; }
+						case 4: { if (!imageAnalysis.processVideo(filename)) { cerr << "  => Failed to load video " << filename << "!" << endl; } break; }
 						case 5: { if (!imageAnalysis.processVideo(cameraDeviceNumber)) { cerr << "  => Failed to open camera " << cameraDeviceNumber << "!" << endl; } break; }
 						default: break;
 					}				
@@ -84,7 +82,7 @@ void CLI::startInteractiveCLI() {
 
 
 int CLI::getUserOption() {
-	cout << " ## Detect car from:\n";
+	cout << " ## Menu:\n";
 	cout << "   1 - Setup image recognition configuration\n";
 	cout << "   2 - Evaluate detector\n";
 	cout << "   3 - Test detector from image\n";
@@ -114,17 +112,18 @@ void CLI::setupImageRecognition() {
 	Ptr<DescriptorExtractor> descriptorExtractor;
 	Ptr<DescriptorMatcher> descriptorMatcher;
 	stringstream configurationTags;
+	stringstream selectorTags;
 	bool inliersSelectionMethodFlagToUseGlobalMatch = true;
 
 	switch (featureDetectorSelection) {
-		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; break; }
-		case 2: { featureDetector = new cv::SurfFeatureDetector(400);		configurationTags << "_SURF-Detector"; break; }
-		case 3: { featureDetector = new cv::GoodFeaturesToTrackDetector();	configurationTags << "_GFTT-Detector"; break; }
-		case 4: { featureDetector = new cv::FastFeatureDetector();			configurationTags << "_FAST-Detector"; break; }		
-		case 5: { featureDetector = new cv::OrbFeatureDetector();			configurationTags << "_ORB-Detector";  break; }
-		case 6: { featureDetector = new cv::BRISK();						configurationTags << "_BRISK-Detector"; break; }
-		case 7: { featureDetector = new cv::StarFeatureDetector();			configurationTags << "_STAR-Detector"; break; }
-		case 8: { featureDetector = new cv::MserFeatureDetector();			configurationTags << "_MSER-Detector"; break; }	
+		case 1: { featureDetector = new cv::SiftFeatureDetector();			configurationTags << "_SIFT-Detector"; selectorTags << "_SIFT-Detector"; break; }
+		case 2: { featureDetector = new cv::SurfFeatureDetector(400);		configurationTags << "_SURF-Detector"; selectorTags << "_SURF-Detector"; break; }
+		case 3: { featureDetector = new cv::GoodFeaturesToTrackDetector();	configurationTags << "_GFTT-Detector"; selectorTags << "_GFTT-Detector"; break; }
+		case 4: { featureDetector = new cv::FastFeatureDetector();			configurationTags << "_FAST-Detector"; selectorTags << "_FAST-Detector"; break; }
+		case 5: { featureDetector = new cv::OrbFeatureDetector();			configurationTags << "_ORB-Detector";  selectorTags << "_ORB-Detector"; break; }
+		case 6: { featureDetector = new cv::BRISK();						configurationTags << "_BRISK-Detector"; selectorTags << "_BRISK-Detector"; break; }
+		case 7: { featureDetector = new cv::StarFeatureDetector();			configurationTags << "_STAR-Detector"; selectorTags << "_STAR-Detector"; break; }
+		case 8: { featureDetector = new cv::MserFeatureDetector();			configurationTags << "_MSER-Detector"; selectorTags << "_MSER-Detector"; break; }
 		default: break;
 	}
 
@@ -179,7 +178,7 @@ void CLI::setupImageRecognition() {
 	}
 	
 	
-	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), imagesDBLevelOfDetail, inliersSelectionMethodFlagToUseGlobalMatch);
+	_imageDetector = new ImageDetector(featureDetector, descriptorExtractor, descriptorMatcher, _imagePreprocessor, configurationTags.str(), selectorTags.str(), imagesDBLevelOfDetail, inliersSelectionMethodFlagToUseGlobalMatch);
 }
 
 

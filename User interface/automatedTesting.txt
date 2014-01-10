@@ -1,0 +1,43 @@
+####################################################################################################
+  >>>                                    Currency recognition                                  <<<
+####################################################################################################
+
+ ## Menu:
+   1 - Setup image recognition configuration
+   2 - Evaluate detector
+   3 - Test detector from image
+   4 - Test detector from video
+   5 - Test detector from camera
+   0 - Exit
+
+ >>> Option [0, 5]: 2
+    -> Evaluating detector with 82 test images...
+
+    -> Evaluating image 5.JPG (1/82)
+    -> Detected 1 target ( 5 )
+    -> Evaluation of image 5.JPG finished in 0.461625s
+    -> Precision: 1 | Recall: 1 | Accuracy: 1
+
+    -> Evaluating image 5__(2).JPG (2/82)
+    -> Detected 1 target ( 5 )
+    -> Evaluation of image 5__(2).JPG finished in 0.320294s
+    -> Precision: 1 | Recall: 1 | Accuracy: 1
+
+    -> Evaluating image 5__(3).jpg (3/82)
+    -> Detected 1 target ( 5 )
+    -> Evaluation of image 5__(3).jpg finished in 0.476755s
+    -> Precision: 1 | Recall: 1 | Accuracy: 1
+
+...
+
+    -> Evaluating image 500-500-500.jpg (82/82)
+    -> Detected 3 targets ( 500 500 500 )
+    -> Evaluation of image 500-500-500.jpg finished in 3.11406s
+    -> Precision: 1 | Recall: 1 | Accuracy: 1
+
+    -> Finished evaluation of detector in 01m38.0633s || Global precision: 1 | Global recall: 1 | Global accuracy: 1
+
+
+
+
+Press ENTER to continue...

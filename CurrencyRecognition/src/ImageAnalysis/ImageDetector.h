@@ -63,7 +63,7 @@ using cv::imwrite;
 class ImageDetector {
 	public:
 		ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
-			const string& configurationTags, const vector<string>& referenceImagesDirectories,
+			const string& configurationTags, const string& selectorTags, const vector<string>& referenceImagesDirectories,
 			bool useInliersGlobalMatch = true,
 			const string& referenceImagesListPath = REFERENCE_IMGAGES_LIST, const string& testImagesListPath = TEST_IMGAGES_LIST);
 		virtual ~ImageDetector();
@@ -72,7 +72,7 @@ class ImageDetector {
 		void setupTargetsShapesRanges(string maskPath = TARGETS_SHAPE_MASKS);
 
 		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.07, float minimumTargetAreaPercentage = 0.05,
-			float maxDistanceRatio = 0.75f, float reprojectionThresholdPercentage = 0.01f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 6);
+			float maxDistanceRatio = 0.75f, float reprojectionThresholdPercentage = 0.01f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 8);
 		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilename = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 
@@ -85,6 +85,7 @@ class ImageDetector {
 
 		Ptr<ImagePreprocessor> _imagePreprocessor;
 		string _configurationTags;
+		string _selectorTags;
 		vector<string> _referenceImagesDirectories;
 		string _referenceImagesListPath;
 		string _testImagesListPath;
