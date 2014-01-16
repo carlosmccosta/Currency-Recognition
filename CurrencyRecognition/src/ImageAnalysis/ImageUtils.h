@@ -1,5 +1,6 @@
 #pragma once
 
+
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <includes> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // std includes
 #include <vector>
@@ -42,30 +43,30 @@ using cv::imread;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 namespace ImageUtils {
-	bool loadBinaryMask(string imagePath, Mat& binaryMaskOut);
-	void loadImageMasks(string imagePath, vector<Mat>& masks);
-	void retriveTargetsMasks(string imagePath, vector<Mat>& masksOut, Scalar lowerRange = Scalar(0, 0, 254), Scalar higherRange = Scalar(0, 0, 255));
+	bool loadBinaryMask(const string& imagePath, Mat& binaryMaskOut);
+	void loadImageMasks(const string& imagePath, vector<Mat>& masks);
+	void retriveTargetsMasks(const string& imagePath, vector<Mat>& masksOut, const Scalar& lowerRange = Scalar(0, 0, 254), const Scalar& higherRange = Scalar(0, 0, 255));
 	bool mergeTargetMasks(vector<Mat>& masks, Mat& mergedMaskOut);
 
-	void splitKeyPoints(string imagePath, const vector<KeyPoint>& keypoints, vector< vector <KeyPoint> >& keypointsTargetClass, vector<KeyPoint>& keypointsNonTargetClass);
+	void splitKeyPoints(const string& imagePath, const vector<KeyPoint>& keypoints, vector< vector <KeyPoint> >& keypointsTargetClassOut, vector<KeyPoint>& keypointsNonTargetClassOut);
 
-	void correctBoundingBox(Rect& boundingBox, int imageWidth, int imageHeight);
-	void findMaskBoundingRectangles(Mat& mask, vector<Rect>& targetsBoundingRectangles);
+	void correctBoundingBox(Rect& boundingBoxInOut, int imageWidth, int imageHeight);
+	void findMaskBoundingRectangles(Mat& mask, vector<Rect>& targetsBoundingRectanglesOut);
 	
-	bool loadMatrix(string filename, string tag, Mat& matrixOut);
-	bool saveMatrix(string filename, string tag, const Mat& matrix);	
+	bool loadMatrix(const string& filename, const string& tag, Mat& matrixOut);
+	bool saveMatrix(const string& filename, const string& tag, const Mat& matrix);	
 
 	bool matchDescriptorsWithRatioTest(Ptr<DescriptorMatcher> descriptorMatcher, const Mat& descriptorsQueryImage, const Mat& targetDescriptors, vector<DMatch>& matchesFilteredOut, float maxDistanceRatio = 0.75f);
 	bool refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoints, const vector<KeyPoint>& trainKeypoints, const vector<DMatch>& matches,
 		Mat& homographyOut, vector<DMatch>& inliersOut, vector<unsigned char>& inliersMaskOut,
 		float reprojectionThreshold = 3.0f, double confidence = 0.995, int maxIters = 5000, size_t minNumberMatchesAllowed = 4);
 
-	void removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage);
+	void removeInliersFromKeypointsAndDescriptors(const vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImageInOut, Mat& descriptorsQueryImageInOut);
 
-	void drawContour(Mat& image, vector<Point> contour, Scalar color = Scalar(255,255,255), int thickness = 2);
-	double computeContourAspectRatio(vector<Point> contour);
-	double computeContourCircularity(vector<Point> contour);
+	void drawContour(Mat& image, const vector<Point>& contour, const Scalar& color = Scalar(255, 255, 255), int thickness = 2);
+	double computeContourAspectRatio(const vector<Point>& contour);
+	double computeContourCircularity(const vector<Point>& contour);
 
-	string getFilenameWithoutExtension(string filepath);	
+	string getFilenameWithoutExtension(const string& filepath);
 };
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  </ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

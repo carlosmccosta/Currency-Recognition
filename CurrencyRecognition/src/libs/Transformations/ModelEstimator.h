@@ -1,5 +1,6 @@
 #pragma once
 
+
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <copyright notice> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // This implementation resulted from the refactoring of code distributed in the OpenCV 2.4.8
 // The refactoring was performed to allow the fine tunning of the findHomography function

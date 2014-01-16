@@ -3,8 +3,8 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <TargetDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 TargetDetector::TargetDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher,
-	size_t targetTag, Scalar contourColor, bool useInliersGlobalMatch) :
-	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher),
+	size_t targetTag, const Scalar& contourColor, bool useInliersGlobalMatch) :
+	_featureDetector(featureDetector), _descriptorExtractor(descriptorExtractor), _descriptorMatcher(descriptorMatcher/*->clone(true)*/),
 	_targetTag(targetTag), _contourColor(contourColor), _useInliersGlobalMatch(useInliersGlobalMatch),
 	_currentLODIndex(0) {}
 

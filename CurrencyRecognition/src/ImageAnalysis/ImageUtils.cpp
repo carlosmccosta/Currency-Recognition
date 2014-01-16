@@ -2,7 +2,7 @@
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageUtils> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-bool ImageUtils::loadBinaryMask(string imagePath, Mat& binaryMaskOut) {
+bool ImageUtils::loadBinaryMask(const string& imagePath, Mat& binaryMaskOut) {
 	binaryMaskOut = imread(imagePath, CV_LOAD_IMAGE_GRAYSCALE);
 	if (binaryMaskOut.data) {
 		cv::threshold(binaryMaskOut, binaryMaskOut, 250, 255, CV_THRESH_BINARY);
@@ -13,7 +13,7 @@ bool ImageUtils::loadBinaryMask(string imagePath, Mat& binaryMaskOut) {
 }
 
 
-void ImageUtils::loadImageMasks(string imagePath, vector<Mat>& masks) {
+void ImageUtils::loadImageMasks(const string& imagePath, vector<Mat>& masks) {
 	size_t imageMaskNumber = 0;
 	bool masksAvailable = true;
 
@@ -33,7 +33,7 @@ void ImageUtils::loadImageMasks(string imagePath, vector<Mat>& masks) {
 }
 
 
-void ImageUtils::retriveTargetsMasks(string imagePath, vector<Mat>& masksOut, Scalar lowerRange, Scalar higherRange) {
+void ImageUtils::retriveTargetsMasks(const string& imagePath, vector<Mat>& masksOut, const Scalar& lowerRange, const Scalar& higherRange) {
 	loadImageMasks(imagePath, masksOut);
 	int masksSize = masksOut.size();
 
@@ -84,15 +84,15 @@ bool ImageUtils::mergeTargetMasks(vector<Mat>& masks, Mat& mergedMaskOut) {
 }
 
 
-void ImageUtils::splitKeyPoints(string imagePath, const vector<KeyPoint>& keypoints, vector< vector <KeyPoint> >& keypointsTargetClass, vector<KeyPoint>& keypointsNonTargetClass) {
-	keypointsTargetClass.clear();
-	keypointsNonTargetClass.clear();
+void ImageUtils::splitKeyPoints(const string& imagePath, const vector<KeyPoint>& keypoints, vector< vector <KeyPoint> >& keypointsTargetClassOut, vector<KeyPoint>& keypointsNonTargetClassOut) {
+	keypointsTargetClassOut.clear();
+	keypointsNonTargetClassOut.clear();
 
 	vector<Mat> masks;
 	loadImageMasks(imagePath, masks);
 	int keyPointsSize = keypoints.size();	
 
-	keypointsTargetClass.resize(masks.size());
+	keypointsTargetClassOut.resize(masks.size());
 
 	#pragma omp parallel for schedule(dynamic)
 	for (int keyPointPosition = 0; keyPointPosition < keyPointsSize; ++keyPointPosition) {
@@ -103,7 +103,7 @@ void ImageUtils::splitKeyPoints(string imagePath, const vector<KeyPoint>& keypoi
 						
 			if (maskColorInKeyPointPosition[2] == 255) {
 				#pragma omp critical
-				keypointsTargetClass[maskPosition].push_back(keypoints[keyPointPosition]);
+				keypointsTargetClassOut[maskPosition].push_back(keypoints[keyPointPosition]);
 				
 				keyPointIsNotCar = false;
 				break;
@@ -112,41 +112,41 @@ void ImageUtils::splitKeyPoints(string imagePath, const vector<KeyPoint>& keypoi
 		
 		if (keyPointIsNotCar) {
 			#pragma omp critical
-			keypointsNonTargetClass.push_back(keypoints[keyPointPosition]);
+			keypointsNonTargetClassOut.push_back(keypoints[keyPointPosition]);
 		}
 	}
 }
 
 
-void ImageUtils::correctBoundingBox(Rect& boundingBox, int imageWidth, int imageHeight) {
-	if (boundingBox.x < 0) {
-		boundingBox.width += boundingBox.x;
-		boundingBox.x = 0;
+void ImageUtils::correctBoundingBox(Rect& boundingBoxInOut, int imageWidth, int imageHeight) {
+	if (boundingBoxInOut.x < 0) {
+		boundingBoxInOut.width += boundingBoxInOut.x;
+		boundingBoxInOut.x = 0;
 	}
 
-	if (boundingBox.x > imageWidth) {
-		boundingBox.width = 0;
-		boundingBox.x = imageWidth;
+	if (boundingBoxInOut.x > imageWidth) {
+		boundingBoxInOut.width = 0;
+		boundingBoxInOut.x = imageWidth;
 	}
 
-	if (boundingBox.y < 0) {
-		boundingBox.height += boundingBox.y;
-		boundingBox.y = 0;
+	if (boundingBoxInOut.y < 0) {
+		boundingBoxInOut.height += boundingBoxInOut.y;
+		boundingBoxInOut.y = 0;
 	}
 
-	if (boundingBox.y > imageHeight) {
-		boundingBox.height = 0;
-		boundingBox.y = imageWidth;
+	if (boundingBoxInOut.y > imageHeight) {
+		boundingBoxInOut.height = 0;
+		boundingBoxInOut.y = imageWidth;
 	}
 
-	int maxWidth = imageWidth - boundingBox.x;
-	if (boundingBox.width > maxWidth) {
-		boundingBox.width = maxWidth;
+	int maxWidth = imageWidth - boundingBoxInOut.x;
+	if (boundingBoxInOut.width > maxWidth) {
+		boundingBoxInOut.width = maxWidth;
 	}
 
-	int maxHeight = imageHeight - boundingBox.y;
-	if (boundingBox.height > maxHeight) {
-		boundingBox.height = maxHeight;
+	int maxHeight = imageHeight - boundingBoxInOut.y;
+	if (boundingBoxInOut.height > maxHeight) {
+		boundingBoxInOut.height = maxHeight;
 	}
 }
 
@@ -171,7 +171,7 @@ void ImageUtils::findMaskBoundingRectangles(Mat& mask, vector<Rect>& targetsBoun
 }
 
 
-bool ImageUtils::loadMatrix(string filename, string tag, Mat& matrixOut) {
+bool ImageUtils::loadMatrix(const string& filename, const string& tag, Mat& matrixOut) {
 	FileStorage fs;
 	if (fs.open(filename, FileStorage::READ)) {		
 		fs[tag] >> matrixOut;
@@ -184,7 +184,7 @@ bool ImageUtils::loadMatrix(string filename, string tag, Mat& matrixOut) {
 }
 
 
-bool ImageUtils::saveMatrix(string filename, string tag, const Mat& matrix) {
+bool ImageUtils::saveMatrix(const string& filename, const string& tag, const Mat& matrix) {
 	FileStorage fs;
 	if (fs.open(filename, FileStorage::WRITE)) {		
 		fs << tag << matrix;
@@ -246,7 +246,7 @@ bool ImageUtils::refineMatchesWithHomography(const vector<KeyPoint>& queryKeypoi
 }
 
 
-void ImageUtils::removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImage, Mat& descriptorsQueryImage) {
+void ImageUtils::removeInliersFromKeypointsAndDescriptors(const vector<DMatch>& inliers, vector<KeyPoint>& keypointsQueryImageInOut, Mat& descriptorsQueryImageInOut) {
 	vector<int> inliersKeypointsPositions; // positions to remove
 
 	for (size_t inlierIndex = 0; inlierIndex < inliers.size(); ++inlierIndex) {
@@ -260,21 +260,21 @@ void ImageUtils::removeInliersFromKeypointsAndDescriptors(vector<DMatch>& inlier
 	keypointsQueryImage.erase(keypointsQueryImage.begin() + inliersKeypointsPositions[i]);
 	}*/
 
-	vector<KeyPoint> keypointsQueryImageBackup = keypointsQueryImage;
-	keypointsQueryImage.clear();
+	vector<KeyPoint> keypointsQueryImageBackup = keypointsQueryImageInOut;
+	keypointsQueryImageInOut.clear();
 	Mat filteredDescriptors;
-	for (int rowIndex = 0; rowIndex < descriptorsQueryImage.rows; ++rowIndex) {
+	for (int rowIndex = 0; rowIndex < descriptorsQueryImageInOut.rows; ++rowIndex) {
 		if (!binary_search(inliersKeypointsPositions.begin(), inliersKeypointsPositions.end(), rowIndex)) {
-			keypointsQueryImage.push_back(keypointsQueryImageBackup[rowIndex]);
-			filteredDescriptors.push_back(descriptorsQueryImage.row(rowIndex));
+			keypointsQueryImageInOut.push_back(keypointsQueryImageBackup[rowIndex]);
+			filteredDescriptors.push_back(descriptorsQueryImageInOut.row(rowIndex));
 		}
 	}
 
-	filteredDescriptors.copyTo(descriptorsQueryImage);
+	filteredDescriptors.copyTo(descriptorsQueryImageInOut);
 }
 
 
-void ImageUtils::drawContour(Mat& image, vector<Point> contour, Scalar color, int thickness) {
+void ImageUtils::drawContour(Mat& image, const vector<Point>& contour, const Scalar& color, int thickness) {
 	for (size_t i = 0; i < contour.size(); ++i) {
 		Point p1 = contour[i];
 		Point p2;
@@ -292,13 +292,13 @@ void ImageUtils::drawContour(Mat& image, vector<Point> contour, Scalar color, in
 }
 
 
-double ImageUtils::computeContourAspectRatio(vector<Point> contour) {	
+double ImageUtils::computeContourAspectRatio(const vector<Point>& contour) {
 	RotatedRect contourEllipse = cv::minAreaRect(contour);
 	return contourEllipse.size.width / contourEllipse.size.height;
 }
 
 
-double ImageUtils::computeContourCircularity(vector<Point> contour) {
+double ImageUtils::computeContourCircularity(const vector<Point>& contour) {
 	double area = contourArea(contour);
 	double perimeter = cv::arcLength(contour, true);
 
@@ -310,7 +310,7 @@ double ImageUtils::computeContourCircularity(vector<Point> contour) {
 }
 
 
-string ImageUtils::getFilenameWithoutExtension(string filepath) {
+string ImageUtils::getFilenameWithoutExtension(const string& filepath) {
 	size_t dotPosition = filepath.rfind(".");
 	if (dotPosition != string::npos) {
 		return filepath.substr(0, dotPosition);

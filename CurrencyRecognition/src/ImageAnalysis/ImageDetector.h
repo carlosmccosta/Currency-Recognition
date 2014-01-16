@@ -69,11 +69,11 @@ class ImageDetector {
 		virtual ~ImageDetector();
 
 		bool setupTargetDB(const string& referenceImagesListPaths, bool useInliersGlobalMatch = true);
-		void setupTargetsShapesRanges(string maskPath = TARGETS_SHAPE_MASKS);
+		void setupTargetsShapesRanges(const string& maskPath = TARGETS_SHAPE_MASKS);
 
 		virtual Ptr< vector< Ptr<DetectorResult> > > detectTargets(Mat& image, float minimumMatchAllowed = 0.07, float minimumTargetAreaPercentage = 0.05,
 			float maxDistanceRatio = 0.75f, float reprojectionThresholdPercentage = 0.01f, double confidence = 0.999, int maxIters = 5000, size_t minimumNumberInliers = 8);
-		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, string imageFilename = "", bool useHighGUI = false);
+		virtual vector<size_t> detectTargetsAndOutputResults(Mat& image, const string& imageFilename = "", bool useHighGUI = false);
 		DetectorEvaluationResult evaluateDetector(const string& testImgsList, bool saveResults = true);
 
 		void extractExpectedResultsFromFilename(string filename, vector<size_t>& expectedResultFromTestOut);

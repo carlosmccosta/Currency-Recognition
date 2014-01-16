@@ -1,5 +1,6 @@
 #include "ImageDetector.h"
 
+
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  <ImageDetector>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<DescriptorExtractor> descriptorExtractor, Ptr<DescriptorMatcher> descriptorMatcher, Ptr<ImagePreprocessor> imagePreprocessor,
 	const string& configurationTags, const string& selectorTags, const vector<string>& referenceImagesDirectories,
@@ -10,7 +11,7 @@ ImageDetector::ImageDetector(Ptr<FeatureDetector> featureDetector, Ptr<Descripto
 	_referenceImagesDirectories(referenceImagesDirectories), _referenceImagesListPath(referenceImagesListPath), _testImagesListPath(testImagesListPath),
 	_contourAspectRatioRange(-1, -1), _contourCircularityRange(-1, -1) {
 	
-	setupTargetDB(referenceImagesListPath);
+	setupTargetDB(referenceImagesListPath, useInliersGlobalMatch);
 	setupTargetsShapesRanges();
 }
 
@@ -36,13 +37,12 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 		performanceTimer.start();
 
 		//#pragma omp parallel for schedule(dynamic)
-		for (int configIndex = 0; configIndex < numberOfFiles; ++configIndex) {
-			stringstream ss(configurations[configIndex]);
+		for (int configIndex = 0; configIndex < numberOfFiles; ++configIndex) {			
 			string filename;
 			size_t targetTag;
 			string separator;
 			Scalar color;			
-
+			stringstream ss(configurations[configIndex]);
 			ss >> filename >> separator >> targetTag >> separator >> color[2] >> color[1] >> color[0];
 
 			TargetDetector targetDetector(_featureDetector, _descriptorExtractor, _descriptorMatcher, targetTag, color, useInliersGlobalMatch);
@@ -90,30 +90,37 @@ bool ImageDetector::setupTargetDB(const string& referenceImagesListPath, bool us
 }
 
 
-void ImageDetector::setupTargetsShapesRanges(string maskPath) {
+void ImageDetector::setupTargetsShapesRanges(const string& maskPath) {
 	Mat shapeROIs;
 	if (ImageUtils::loadBinaryMask(maskPath, shapeROIs)) {
 		vector< vector<Point> > contours;
 		vector<Vec4i> hierarchy;
 		findContours(shapeROIs, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
-		for (size_t i = 0; i < contours.size(); ++i) {
+		int contoursSize = (int)contours.size();
+
+		#pragma omp parallel for
+		for (int i = 0; i < contoursSize; ++i) {
 			double contourAspectRatio = ImageUtils::computeContourAspectRatio(contours[i]);
 			double contourCircularity = ImageUtils::computeContourCircularity(contours[i]);
 
-			if (_contourAspectRatioRange[0] == -1 || contourAspectRatio < _contourAspectRatioRange[0]) {
+			#pragma omp critical
+			if (_contourAspectRatioRange[0] == -1 || contourAspectRatio < _contourAspectRatioRange[0]) {				
 				_contourAspectRatioRange[0] = contourAspectRatio;
 			}
 
-			if (_contourAspectRatioRange[1] == -1 || contourAspectRatio > _contourAspectRatioRange[1]) {
+			#pragma omp critical
+			if (_contourAspectRatioRange[1] == -1 || contourAspectRatio > _contourAspectRatioRange[1]) {				
 				_contourAspectRatioRange[1] = contourAspectRatio;
 			}
 
-			if (_contourCircularityRange[0] == -1 || contourCircularity < _contourCircularityRange[0]) {
+			#pragma omp critical
+			if (_contourCircularityRange[0] == -1 || contourCircularity < _contourCircularityRange[0]) {				
 				_contourCircularityRange[0] = contourCircularity;
 			}
 
-			if (_contourCircularityRange[1] == -1 || contourCircularity > _contourCircularityRange[1]) {
+			#pragma omp critical
+			if (_contourCircularityRange[1] == -1 || contourCircularity > _contourCircularityRange[1]) {				
 				_contourCircularityRange[1] = contourCircularity;
 			}
 		}		
@@ -188,10 +195,13 @@ Ptr< vector< Ptr<DetectorResult> > > ImageDetector::detectTargets(Mat& image, fl
 }
 
 
-vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string imageFilename, bool useHighGUI) {
+vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, const string& imageFilename, bool useHighGUI) {
 	Mat imageBackup = image.clone();
 	Ptr< vector< Ptr<DetectorResult> > > detectorResultsOut = detectTargets(image);
 	vector<size_t> results;		
+
+	stringstream imageInliersOutputFilename;
+	imageInliersOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << FILENAME_SEPARATOR << INLIERS_MATCHES << FILENAME_SEPARATOR;
 
 	for (size_t i = 0; i < detectorResultsOut->size(); ++i) {		
 		Ptr<DetectorResult> detectorResult = (*detectorResultsOut)[i];		
@@ -222,11 +232,11 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 			cv::namedWindow(windowName.str(), CV_WINDOW_KEEPRATIO);
 			cv::imshow(windowName.str(), matchesInliers);
 			cv::waitKey(10);
-		} else {
-			stringstream imageOutputFilename;
-			imageOutputFilename << TEST_OUTPUT_DIRECTORY << imageFilename << FILENAME_SEPARATOR << _configurationTags << FILENAME_SEPARATOR << INLIERS_MATCHES << FILENAME_SEPARATOR << i << IMAGE_OUTPUT_EXTENSION;
-			imwrite(imageOutputFilename.str(), matchesInliers);
-		}		
+		}
+
+		stringstream imageOutputFilenameFull;
+		imageOutputFilenameFull << imageInliersOutputFilename.str() << i << IMAGE_OUTPUT_EXTENSION;
+		imwrite(imageOutputFilenameFull.str(), matchesInliers);				
 	}	
 
 	sort(results.begin(), results.end());
@@ -236,7 +246,7 @@ vector<size_t> ImageDetector::detectTargetsAndOutputResults(Mat& image, string i
 	stringstream resultsSS;
 	if (!results.empty()) {
 		resultsSS << " (";
-		for (size_t i = 0; i < results.size(); i++) {
+		for (size_t i = 0; i < results.size(); ++i) {
 			size_t resultValue = results[i];
 			resultsSS << " " << resultValue;
 			globalResult += resultValue;

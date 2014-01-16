@@ -1,11 +1,11 @@
-Obtain data
++ Obtain data
 	+ From image
 	+ From video (VideoCapture - http://docs.opencv.org/doc/tutorials/highgui/video-input-psnr-ssim/video-input-psnr-ssim.html#videoinputpsnrmssim)
 		+ File 
 		+ Webcam
 
 
-Pre-processing
++ Pre-processing
 	- Correct lens distortions
 		- Geometric distortion
 		- Cromatic distortion
@@ -24,7 +24,7 @@ Pre-processing
 	+ Correct brightness		
 
 
-Recognition
++ Recognition
 	+ Setup image DB with each target and its ROIs
 		+ For each image
 			+ Feature detection
@@ -49,7 +49,13 @@ Recognition
 	+ For each test image
 		+ Feature detection
 		+ Feature description
-		+ Descriptors matching
+		+ Descriptors matching			
+		+ Inliers refinement with ratio test
 		+ Inliers refinement with homography computed using RANSAC
 		+ Filter recognition results
-			+ Use rate of inliers in ROIs => (number inliers in ROI) / (number feature points in ROI)
+			+ Retrieve target contour using homography
+			+ Remove results with low rate of inliers in ROIs => (number inliers in ROI) / (number feature points in ROI)
+			+ Remove results that have small contour area
+			+ Remove results that don't have the aspect ratio in the values accepted by the shape database
+			+ Remove results that don't have the circularity  in the values accepted by the shape database
+			+ Remove results that have non convex shape			
