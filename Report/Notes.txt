@@ -1,0 +1,143 @@
+Abstract
+	Problem overview
+	Motivations
+	Applications
+	Method highlights
+	Main results
+
+
+Introduction
+	Problem description
+		Banknote recognition
+	Relevance of work / motivation
+	Usages
+		Teller machines
+		Visual impaired
+		Detection of counterfeit
+		Automating money counting machines
+		Improved security in ATMs
+	Implementation highlights
+		Detection of banknotes in different positions, scales, views and even when partially occluded
+	Difficulties that it overcomes
+		Shape distortion / folding
+		Multiple input resolutions
+		Wearing
+		Lighting
+	Results
+	Paper outline
+
+
+Related work	
+	Banknote Recognition Based on Continuous Change in Strictness of Examination
+		Dynamic template matching
+
+	Banknote Recognition for Visually Impaired
+		Segmentation of number and large shapes of notes
+		Usage of classifiers to perform the match
+
+	Banknote recognition on Android platform
+		SURF feature detection in a image processed with Canny
+
+	Comparative Study of Different Paper Currency and Coin Currency Recognition Method
+		Comparisson of coin and paper currency
+
+	Detection technology to identify money based on pulsed eddy current technique
+		Detection of fake banknotes by using eletromagnetic field detectors
+
+	Distinctive Point Extraction and Recognition Algorithm for Various Kinds of Euro Banknotes
+		Detection of banknotes using neural networks
+
+	Employing multiple-kernel support vector machines for counterfeit banknote recognition
+		Usage of SVM classifier to detect fake banknotes
+
+	Employing quaternion wavelet transform for banknote classiﬁcation
+		QWT and neural networks to detect banknotes
+
+	Feature Extraction for Paper Currency Recognition
+		Usage of size, color and texture to recognize banknotes
+
+	Feature Extraction using FFT for Banknotes Recognition in a Variety of Lighting Conditions
+		Recognition of banknotes using different types of illumination (IR, UV, white ray, back light) and neural networks
+
+	Forgery Detection and Value Identification of Euro Banknotes
+		Recognition of banknotes and detection of fakes by using infra red image aquisition
+
+	Mobile Banknote Recognition
+		Usage of color information captured with sensors from led lighting
+
+	Paper Currency Verification with Support Vector Machines
+		Usage of SVM classifier to recognize banknotes
+
+	Recognition for the Banknotes Grade Based on CPN
+		Usage of Counter Propagation Networks to improve banknote recognition (over normal backpropagation neural networks)
+
+	Recognition of Indian Paper Currency based on LBP
+		Usage of Local Binary Patterns to recognize banknotes
+
+	Recognition of Mexican banknotes via their color and texture features
+		Usage color and texture of in conjunction with a Learning Vector Quantization classifier to detect banknotes
+
+	Reliable Banknote Classification Using Neural Networks
+		Usage of Principal Compoenent Analysis and Learning Vector Quantization to recognize banknotes
+
+	Robust and Effective Component-Based Banknote Recognition for the Blind
+	Robust and Effective Component-based Banknote Recognition by SURF Features
+		Usage of component analysis to improve recognition of folded banknotes
+
+	Self-Defense-Technologies for Automated Teller Machines
+		Detection of fake banknotes to improve teller machines security
+
+	Smartphone Recognition of the U.S. Banknotes
+		Recognition of banknotes using eigenfaces 
+
+	The Design of HMM-Based Banknote
+	Using Hidden Markov Models for paper currency recognition
+		Usage of the Hidden Markov Model classifier to recognize banknotes
+
+	The Recognition of new and old banknotes Based on SVM
+		Usage of Dynamic Time Warp in combination with SVM to recognize banknotes
+
+Implementation
+	Preprocessing
+		Bilateral filter
+		CLAHE (Contrast Limited Adaptive Histogram Equalization)
+		Gamma correction
+	Reference image database setup
+		All euro notes (back and front) are recognized, including the new series (5 euro notes)
+	Recognition
+		Keypoint detection
+			SIFT, SURF, GFTT, FAST, ORB, BRISK, STAR, MSER
+		Descriptor extraction
+			SIFT, SURF, FREAK, BRIEF, ORB, BRISK
+		Descriptor matching
+			Brute Force, FLANN
+		Inliers filtering
+			Ration test
+			Homography computed with RANSAC
+		Results analysis
+			Remove results with small area
+			Remove results with unacceptable contour shape
+				Circularity out of accpetable range
+				Aspect ratio out of accpetable range
+				Not convex
+
+Results
+	100% correct detection in 82 test images
+	Test images includes banknotes that are partially occluded, in different positions, scales, orientations, views and with different lighting conditions
+	Implementation supports detection of multiple banknotes in the same image
+
+Discussion
+	Best results achieved with SIFT and SURF (as keypoint detector and descriptor extrator) in conjunction with a Brute Force descriptor matcher
+	Inlier filtering garantees high accuracy in recognizing banknotes (even when partially occluded)
+
+Future work
+	Addition of speech synthesis to allow blind people to use the implementation
+
+Conclusion
+	Relevance of implementation
+	Contributions made to state of art
+	Pratical applications
+
+References
+
+Appendices

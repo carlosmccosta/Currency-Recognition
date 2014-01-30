@@ -43,7 +43,6 @@ opencv_ocl248d.lib
 opencv_photo248d.lib
 opencv_stitching248d.lib
 opencv_superres248d.lib
-opencv_ts248d.lib
 opencv_video248d.lib
 opencv_videostab248d.lib
 
@@ -64,6 +63,5 @@ opencv_ocl248.lib
 opencv_photo248.lib
 opencv_stitching248.lib
 opencv_superres248.lib
-opencv_ts248.lib
 opencv_video248.lib
 opencv_videostab248.lib
