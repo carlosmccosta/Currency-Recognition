@@ -6,7 +6,7 @@ This project focus on the detection and recognition of Euro banknotes and has th
 
 [Multiview banknote recognition with component and shape analysis](https://github.com/carlosmccosta/Currency-Recognition/raw/master/Report/Multiview%20banknote%20recognition%20with%20component%20and%20shape%20analysis.pdf)
 
-**Abstract**
+**Abstract:**
 Robust banknote recognition in different perspective 
 views and in dynamic lighting conditions is a critical component in 
 assistive  systems  for  visually  impaired  people.  It  also  has  an 
