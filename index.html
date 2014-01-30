@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Currency-recognition by carlosmccosta</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Currency-recognition</h1>
+        <h2>Augmented reality currency recognition</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/carlosmccosta/Currency-Recognition/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/carlosmccosta/Currency-Recognition/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/carlosmccosta/Currency-Recognition" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a name="currency-recognition" class="anchor" href="#currency-recognition"><span class="octicon octicon-link"></span></a><a href="https://github.com/carlosmccosta/Currency-Recognition/">Currency Recognition</a>
+</h1>
+
+<h2>
+<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
+
+<hr><p>This project focus on the detection and recognition of Euro banknotes and has the following associated paper:</p>
+
+<p><a href="https://github.com/carlosmccosta/Currency-Recognition/raw/master/Report/Multiview%20banknote%20recognition%20with%20component%20and%20shape%20analysis.pdf">Multiview banknote recognition with component and shape analysis</a></p>
+
+<p><strong>Abstract</strong>
+Robust banknote recognition in different perspective 
+views and in dynamic lighting conditions is a critical component in 
+assistive  systems  for  visually  impaired  people.  It  also  has  an 
+important  role  in  improving  the  security  of  ATM  maintenance 
+procedures  and  in  increasing  the  confidence  in  the  results
+computed by  automatic banknote counting machines.  Moreover, 
+with  the  proper  hardware,  it  can  be  an  effective  way  to  detect 
+counterfeit  banknotes.  With  these  applications  in  mind,  it  was 
+developed  a  system  that  can  recognize  multiple  banknotes  in 
+different perspective views and scales, even when they are part of 
+cluttered environments in which the lighting conditions may vary 
+considerably. The system is also able to recognize banknotes that 
+are partially visible, folded, wrinkled or even worn by usage.  To 
+accomplish  this  task,  the  system  is  based  in  image  processing 
+algorithms, such as feature detection, description and matching. 
+To improve the confidence in the recognition results, the contour 
+of the banknotes is computed using a homography, and its shape 
+is analyzed to make sure that it belongs to a banknote. The system 
+was  tested  with  82  test  images,  and  all  Euro  banknotes  were 
+successfully recognized, even when there were several  banknotes 
+in the same test image, and they were partially occluded.</p>
+
+<h2>
+<a name="results" class="anchor" href="#results"><span class="octicon octicon-link"></span></a>Results</h2>
+
+<p><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/5__(5).jpg___SIFT-Detector_SIFT-Extractor_BF-Matcher_lowQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 1 - Detection of a banknote in an ideal perspective view"></p>
+
+<p>Fig. 1 - Detection of a banknote in an ideal perspective view</p>
+
+<p><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/5__(6).jpg___SURF-Detector_SURF-Extractor_BF-Matcher_lowQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 2 - Detection of a banknote with perspective distortion"></p>
+
+<p>Fig. 2 - Detection of a banknote with perspective distortion</p>
+
+<p><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/10__(9).jpeg___SIFT-Detector_SIFT-Extractor_BF-Matcher_lowQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 3 - Detection of a banknote in cluttered environments"></p>
+
+<p>Fig. 3 - Detection of a banknote in cluttered environments</p>
+
+<p><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/500.jpg___GFTT-Detector_SIFT-Extractor_BF-Matcher_dynamicQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 4 - Detection of partially occluded banknotes"><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/50__(13).jpg___SIFT-Detector_SIFT-Extractor_BF-Matcher_mediumQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 4 - Detection of partially occluded banknotes"></p>
+
+<p>Fig. 4 - Detection of partially occluded banknotes</p>
+
+<p><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/10-20-50.jpg___SIFT-Detector_SIFT-Extractor_BF-Matcher_dynamicQualityImageDB_globalMatch__inliersMatches__1.jpg" alt="Fig. 5 - Detection of overlapping banknotes"><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/10-20-50.jpg___SIFT-Detector_SIFT-Extractor_BF-Matcher_dynamicQualityImageDB_globalMatch__inliersMatches__2.jpg" alt="Fig. 5 - Detection of overlapping banknotes"><img src="https://raw.github.com/carlosmccosta/Currency-Recognition/master/Results/Representative%20results/10-20-50.jpg___SIFT-Detector_SIFT-Extractor_BF-Matcher_dynamicQualityImageDB_globalMatch__inliersMatches__0.jpg" alt="Fig. 5 - Detection of overlapping banknotes"></p>
+
+<p>Fig. 5 - Detection of overlapping banknotes</p>
+
+<h2>
+<a name="releases" class="anchor" href="#releases"><span class="octicon octicon-link"></span></a>Releases</h2>
+
+<hr><p><a href="https://github.com/carlosmccosta/Currency-Recognition/releases">Windows 8.1 release</a></p>
+
+<h2>
+<a name="building-and-developing" class="anchor" href="#building-and-developing"><span class="octicon octicon-link"></span></a>Building and developing</h2>
+
+<hr><p>The setup instructions on how to build and develop in Visual Studio is available <a href="https://github.com/carlosmccosta/Currency-Recognition/blob/master/CurrencyRecognition/docs/Visual%20Studio%20configuration%20for%20OpenCV%202.4.8.txt">here</a></p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
