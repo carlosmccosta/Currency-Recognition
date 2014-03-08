@@ -4,7 +4,7 @@
 ## Overview
 This project focus on the detection and recognition of Euro banknotes and has the following associated paper:
 
-[Multiview banknote recognition with component and shape analysis](https://github.com/carlosmccosta/Currency-Recognition/raw/master/Report/Multiview%20banknote%20recognition%20with%20component%20and%20shape%20analysis.pdf)
+[Multiview banknote recognition with component and shape analysis](https://www.researchgate.net/publication/260392128_Multiview_banknote_recognition_with_component_and_shape_analysis)
 
 **Abstract:**
 Robust banknote recognition in different perspective 
