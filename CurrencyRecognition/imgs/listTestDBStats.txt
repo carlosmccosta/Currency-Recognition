@@ -1,0 +1,28 @@
+Note | Count
+============
+  5	 -	15
+ 10	 -	12
+ 20	 -	19
+ 50	 -	19
+100	 -	6
+200	 -	9
+500	 -	15
+
+
+Nº notes in image | Count
+==========================
+1				  | 67
+2				  | 11
+3				  | 2
+
+
+
+Detector | Descriptor | Matcher | Images with 1 bk | Images with 2 bk | Images with 3 bk
+=========================================================================================
+SIFT	 & SIFT		  & BF		& 26			   & 6				  & 2
+SIFT	 & SIFT		  & FLANN	& 11			   & 1
+SURF	 & SURF		  & BF		& 24			   & 3
+GFTT	 & SIFT		  & BF		& 3				   & 1
+FAST	 & SIFT		  & BF		& 1
+BRISK	 & BRISK	  & BF		& 1
+ORB		 & ORB		  & BF		& 1
